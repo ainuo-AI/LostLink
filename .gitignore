@@ -1,0 +1,42 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Node.js / frontend
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Runtime data
+uploads/
+logs/
+*.log
+*.db
+*.sqlite3
+
+# IDE and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local build and temporary files
+tmp/
+temp/
+*.tmp
+*.bak

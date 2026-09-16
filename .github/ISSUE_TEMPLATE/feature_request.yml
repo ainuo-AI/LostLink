@@ -1,0 +1,32 @@
+name: 功能建议
+description: 提出一个清晰、可验收的功能需求
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题背景
+      description: 说明要解决的问题和使用场景。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+      description: 描述期望的行为，不必限定具体实现。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收条件
+      description: 列出可以判断任务是否完成的条件。
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 不在本次范围内
+      description: 写明本建议暂不处理的内容。
