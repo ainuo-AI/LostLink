@@ -1,8 +1,20 @@
 # Frontend
 
-前端计划采用 Vue 3。
+前端使用 Vue 3 + TypeScript + Vite。当前已实现可独立演示的首页，包含关键词搜索、条件筛选、记录类型切换和详情弹窗。演示数据目前保存在页面中，后续可通过 `src/api/` 替换为后端接口。
 
-当前目录只定义代码组织方式，不包含页面、组件、路由、状态管理或请求实现。
+## 本地运行
+
+```bash
+npm install
+npm run dev
+```
+
+## 检查与构建
+
+```bash
+npm run type-check
+npm run build
+```
 
 ## 目录职责
 
