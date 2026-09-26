@@ -1,6 +1,6 @@
 # 开发流程
 
-本文说明一项需求从提出到合并的默认流程。具体分支、提交和 Pull Request 规则见 [CONTRIBUTING.md](../CONTRIBUTING.md)。
+本文说明一项需求从提出到合并的默认流程。具体分支、提交和 Pull Request 规则见 [CONTRIBUTING.md](../../CONTRIBUTING.md)。
 
 ## 1. 需求确认
 
@@ -18,7 +18,7 @@
 
 接口草案统一放入 `docs/api/`，未评审的草案不得视为稳定契约。
 
-涉及数据库结构变化时，还应同时提交 migration 设计，流程见 [database.md](database.md)。
+涉及数据库结构变化时，还应同时提交 migration 设计，流程见 [数据库与迁移](../architecture/database.md)。
 
 ## 3. 小步实现
 
@@ -53,8 +53,8 @@ Pull Request 通过评审和自动检查后再合并到 `main`。合并后删除
 
 ## 文档同步规则
 
-- 用户行为或范围变化：更新 `requirements.md`。
-- 模块职责或依赖方向变化：更新 `architecture.md`，必要时新增 ADR。
+- 用户行为或范围变化：更新 `docs/product/requirements.md` 或 `user-flows.md`。
+- 模块职责或依赖方向变化：更新 `docs/architecture/` 中对应文档，必要时新增 ADR。
 - 接口变化：更新 OpenAPI 定义和 `docs/api/` 中的说明。
-- 数据结构变化：提交 migration，并更新 `database.md` 中的数据字典。
+- 数据结构变化：提交 migration，并更新 `docs/architecture/database.md` 中的数据字典。
 - 启动、测试或部署命令变化：更新对应说明，不保留无法执行的旧命令。

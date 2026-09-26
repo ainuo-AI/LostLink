@@ -6,6 +6,8 @@
 
 前端使用 Vue 3、TypeScript 和 Vite。当前已实现可独立演示的首页，包含关键词搜索、条件筛选、记录类型切换和详情弹窗。所有记录都是保存在 `src/views/HomeView.vue` 中的虚构演示数据，页面尚未调用后端 API。
 
+前端模块边界和数据流见 [前端架构](../docs/architecture/frontend.md)，页面状态和视觉规则见 [设计资料](../docs/design/README.md)。本文只维护前端安装、运行、检查命令和源码目录职责。
+
 ## 环境要求
 
 - Node.js 18、20 或 22 及以上版本（由当前 Vite 6.4.3 声明）。

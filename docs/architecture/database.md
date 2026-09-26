@@ -16,7 +16,7 @@
 6. 验证回滚；无法安全回滚时，在 migration 和部署说明中明确标注。
 7. 在同一个 Pull Request 中更新测试、数据字典和部署说明。
 
-后端初始化后，应在 `backend/README.md` 中补充并实际验证以下命令：创建 migration、升级到最新版本、查看当前版本、回滚一个版本。
+后端初始化后，应在 [backend/README.md](../../backend/README.md) 中补充并实际验证以下命令：创建 migration、升级到最新版本、查看当前版本、回滚一个版本。
 
 ## 命名与编写要求
 
