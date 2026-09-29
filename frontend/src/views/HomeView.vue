@@ -1,155 +1,126 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { ApiError } from '../api/client'
+import { fetchItems, toLostFoundItem } from '../api/items'
 import ItemCard from '../components/ItemCard.vue'
 import ItemDetailDialog from '../components/ItemDetailDialog.vue'
 import SiteHeader from '../components/SiteHeader.vue'
-import type { Campus, LostFoundItem, RecordType } from '../types/item'
+import type { Campus, CampusArea, LostFoundItem, RecordType } from '../types/item'
 
-// 首页暂时使用本地演示数据。
-// 后续接入后端时，可将这个数组替换为 src/api/ 中的查询结果。
-const items: LostFoundItem[] = [
-  {
-    id: 1,
-    type: 'lost',
-    category: '箱包',
-    title: '黑色双肩包',
-    description: '包上有一枚白色小熊徽章，内有专业课本和钥匙。',
-    location: '图书馆二层',
-    campus: '东丽校区',
-    area: '北区',
-    displayTime: '今天 15:20',
-    daysAgo: 0,
-    icon: '🎒',
-    color: '#2878a9',
-    contactHint: '请提供包内课本名称进行核验。',
-  },
-  {
-    id: 2,
-    type: 'found',
-    category: '卡证',
-    title: '蓝色校园卡套',
-    description: '透明卡套配蓝色挂绳，已送到教学楼值班室。',
-    location: '教学楼 A 座',
-    campus: '东丽校区',
-    area: '南区',
-    displayTime: '昨天 18:05',
-    daysAgo: 1,
-    icon: '🪪',
-    color: '#22a07a',
-    contactHint: '请说明卡套内校园卡的姓名末字。',
-  },
-  {
-    id: 3,
-    type: 'found',
-    category: '数码',
-    title: '白色无线耳机',
-    description: '白色充电仓，外壳有轻微划痕，耳机已妥善保管。',
-    location: '操场南门',
-    campus: '宁河校区',
-    area: '',
-    displayTime: '9 月 16 日',
-    daysAgo: 4,
-    icon: '🎧',
-    color: '#e79338',
-    contactHint: '请描述蓝牙名称或保护套特征。',
-  },
-  {
-    id: 4,
-    type: 'lost',
-    category: '文具',
-    title: '银色金属钢笔',
-    description: '笔帽处刻有一行小字，可能遗落在自习室。',
-    location: '博学楼 302',
-    campus: '东丽校区',
-    area: '北区',
-    displayTime: '9 月 15 日',
-    daysAgo: 5,
-    icon: '🖊️',
-    color: '#6c72b8',
-    contactHint: '请联系发布者进一步核对。',
-  },
-  {
-    id: 5,
-    type: 'found',
-    category: '服饰',
-    title: '浅灰色防晒外套',
-    description: '左侧口袋内有一包纸巾，现放在食堂服务台。',
-    location: '第二食堂',
-    campus: '宁河校区',
-    area: '',
-    displayTime: '9 月 14 日',
-    daysAgo: 6,
-    icon: '🧥',
-    color: '#bf657b',
-    contactHint: '请说明外套尺码和品牌。',
-  },
-  {
-    id: 6,
-    type: 'lost',
-    category: '书籍',
-    title: '《软件工程导论》',
-    description: '书中夹有黄色便签，扉页写有姓名和班级。',
-    location: '实验楼 4 楼',
-    campus: '东丽校区',
-    area: '南区',
-    displayTime: '9 月 12 日',
-    daysAgo: 8,
-    icon: '📘',
-    color: '#3e75ca',
-    contactHint: '请联系发布者核对扉页信息。',
-  },
-]
+const PAGE_SIZE = 6
 
-// ref 创建响应式状态：值改变后，Vue 会自动更新页面。
-// keywordInput 是输入框当前内容，keyword 是用户点击“搜索”后真正生效的关键词。
+// 首页状态由真实 API 响应驱动，不再保存与后端重复的本地记录数组。
+const items = ref<LostFoundItem[]>([])
+const total = ref(0)
+const loading = ref(false)
+const errorMessage = ref('')
+const currentPage = ref(1)
 const keywordInput = ref('')
 const keyword = ref('')
 const selectedType = ref<'all' | RecordType>('all')
 const category = ref('all')
 const campus = ref<'all' | Campus>('all')
-const area = ref<'all' | '北区' | '南区'>('all')
+const area = ref<'all' | CampusArea>('all')
 const timeRange = ref('30')
 const selectedItem = ref<LostFoundItem | null>(null)
 const filtersOpen = ref(false)
 const notice = ref('')
 
-// Set 自动去重，再转回数组，用于生成下拉选项。
-const categories = [...new Set(items.map((item) => item.category))]
+// 类别属于当前产品枚举；不从筛选后的结果临时推导，避免选项随查询结果消失。
+const categories = ['箱包', '卡证', '数码', '文具', '服饰', '书籍', '其他']
 const campuses: Campus[] = ['东丽校区', '宁河校区']
-const dongliAreas = ['北区', '南区'] as const
+const dongliAreas: CampusArea[] = ['北区', '南区']
 
-// 离开东丽校区后清空北区/南区条件，避免隐藏条件影响宁河结果。
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
+
+// 筛选签名用于监听查询变化；Vue 会合并同一轮中的多项重置操作。
+const filterSignature = computed(() => JSON.stringify({
+  keyword: keyword.value,
+  type: selectedType.value,
+  category: category.value,
+  campus: campus.value,
+  area: area.value,
+  days: timeRange.value,
+}))
+
+let activeRequest: AbortController | null = null
+
+/** 从 FastAPI 加载当前页，并忽略已经被新查询取代的旧请求。 */
+async function loadItems() {
+  activeRequest?.abort()
+  const controller = new AbortController()
+  activeRequest = controller
+  loading.value = true
+  errorMessage.value = ''
+
+  try {
+    const response = await fetchItems({
+      keyword: keyword.value || undefined,
+      type: selectedType.value === 'all' ? undefined : selectedType.value,
+      category: category.value === 'all' ? undefined : category.value,
+      campus: campus.value === 'all' ? undefined : campus.value,
+      area: area.value === 'all' ? undefined : area.value,
+      days: Number(timeRange.value),
+      page: currentPage.value,
+      pageSize: PAGE_SIZE,
+    }, controller.signal)
+
+    if (controller.signal.aborted) return
+    items.value = response.items.map(toLostFoundItem)
+    total.value = response.total
+    selectedItem.value = null
+  } catch (error) {
+    if (controller.signal.aborted || (error instanceof Error && error.name === 'AbortError')) return
+
+    // 对业务错误展示后端安全文案；网络失败使用对用户更明确的连接提示。
+    errorMessage.value = error instanceof ApiError
+      ? error.message
+      : '无法连接数据服务，请确认后端已经启动后重试。'
+    items.value = []
+    total.value = 0
+  } finally {
+    if (activeRequest === controller) {
+      loading.value = false
+      activeRequest = null
+    }
+  }
+}
+
+// 离开东丽校区后清空二级区域，避免向后端发送隐藏筛选条件。
 watch(campus, (currentCampus) => {
   if (currentCampus !== '东丽校区') area.value = 'all'
 })
 
-// computed 是计算属性：只要关键词或任意筛选条件改变，结果就会自动重新计算。
-const filteredItems = computed(() => {
-  const query = keyword.value.trim().toLocaleLowerCase('zh-CN')
-  const maxDays = Number(timeRange.value)
-
-  return items.filter((item) => {
-    // 关键词会同时检索标题、描述、地点和类别。
-    const matchesKeyword = !query || [item.title, item.description, item.location, item.category, item.campus, item.area]
-      .some((field) => field.toLocaleLowerCase('zh-CN').includes(query))
-
-    // 每个布尔值代表一组筛选条件，只有全部为 true 时才保留该记录。
-    const matchesType = selectedType.value === 'all' || item.type === selectedType.value
-    const matchesCategory = category.value === 'all' || item.category === category.value
-    const matchesCampus = campus.value === 'all' || item.campus === campus.value
-    const matchesArea = campus.value !== '东丽校区' || area.value === 'all' || item.area === area.value
-    const matchesTime = item.daysAgo <= maxDays
-
-    return matchesKeyword && matchesType && matchesCategory && matchesCampus && matchesArea && matchesTime
-  })
+watch(filterSignature, () => {
+  // 新筛选总是从第一页开始；已经在第一页时直接重新请求。
+  if (currentPage.value === 1) void loadItems()
+  else currentPage.value = 1
 })
 
-// 提交搜索时才把输入值写入 keyword，避免用户每输入一个字都立即刷新。
+watch(currentPage, () => {
+  void loadItems()
+})
+
+onMounted(() => {
+  void loadItems()
+})
+
+onBeforeUnmount(() => {
+  activeRequest?.abort()
+})
+
+/** 搜索按钮提交后才更新真正生效的关键词。 */
 function submitSearch() {
-  keyword.value = keywordInput.value
+  const nextKeyword = keywordInput.value.trim()
+  currentPage.value = 1
+  if (keyword.value === nextKeyword) {
+    void loadItems()
+  } else {
+    keyword.value = nextKeyword
+  }
 }
 
-// 将所有条件恢复为页面初始状态。
+/** 恢复首页默认筛选，并让监听器重新请求第一页。 */
 function resetFilters() {
   keywordInput.value = ''
   keyword.value = ''
@@ -158,6 +129,14 @@ function resetFilters() {
   campus.value = 'all'
   area.value = 'all'
   timeRange.value = '30'
+  currentPage.value = 1
+}
+
+/** 切换分页时保留筛选条件，并把结果区滚回用户容易看到的位置。 */
+function changePage(page: number) {
+  if (page < 1 || page > totalPages.value || page === currentPage.value) return
+  currentPage.value = page
+  document.querySelector('.results-section')?.scrollIntoView({ behavior: 'smooth' })
 }
 
 // 其他页面尚未实现，点击后使用轻提示告知用户，而不是出现无反应的按钮。
@@ -172,24 +151,22 @@ function navigate(label: string) {
 
 <template>
   <div class="app-shell">
-    <!-- 父组件通过 @navigate 监听子组件发出的导航事件。 -->
     <SiteHeader active-nav="首页" @navigate="navigate" />
 
     <main>
-      <!-- 首屏文案区：说明页面的核心用途。 -->
       <section class="intro-section" aria-labelledby="page-title">
         <div>
           <p class="eyebrow">CAMPUS LOST &amp; FOUND</p>
           <h1 id="page-title">找回遗失，连接线索</h1>
           <p class="intro-copy">搜索校园失物与拾物记录，让每一件物品都有回家的可能。</p>
         </div>
-        <div class="intro-stat" aria-label="今日数据">
-          <span class="stat-number">12</span>
-          <span class="stat-label">今日新线索</span>
+        <div class="intro-stat" aria-label="当前有效线索">
+          <span class="stat-number">{{ total }}</span>
+          <span class="stat-label">条有效线索</span>
         </div>
       </section>
 
-      <!-- .prevent 阻止表单默认刷新页面，改由 Vue 在前端完成搜索。 -->
+      <!-- 表单只在提交时应用关键词，避免每输入一个字就请求一次后端。 -->
       <form class="search-panel" role="search" @submit.prevent="submitSearch">
         <span class="search-icon" aria-hidden="true"></span>
         <label class="sr-only" for="main-search">搜索物品</label>
@@ -200,18 +177,19 @@ function navigate(label: string) {
           placeholder="输入物品名称、地点或特征"
           autocomplete="off"
         />
-        <button class="primary-button search-button" type="submit">搜索</button>
+        <button class="primary-button search-button" type="submit" :disabled="loading">
+          搜索
+        </button>
       </form>
 
       <div class="mobile-toolbar">
         <button class="filter-toggle" type="button" :aria-expanded="filtersOpen" @click="filtersOpen = !filtersOpen">
           <span aria-hidden="true">☷</span> 筛选条件
         </button>
-        <span>共 {{ filteredItems.length }} 条记录</span>
+        <span>共 {{ total }} 条记录</span>
       </div>
 
       <div class="content-grid">
-        <!-- 在手机端通过 open 类控制筛选面板展开/收起。 -->
         <aside :class="['filter-panel', { open: filtersOpen }]" aria-label="筛选条件">
           <div class="filter-heading">
             <div>
@@ -237,7 +215,6 @@ function navigate(label: string) {
             </select>
           </div>
 
-          <!-- 东丽校区才需要第二级区域筛选，宁河校区作为一个整体。 -->
           <div v-if="campus === '东丽校区'" class="filter-group">
             <label for="campus-area">东丽区域</label>
             <select id="campus-area" v-model="area">
@@ -261,25 +238,52 @@ function navigate(label: string) {
           </div>
         </aside>
 
-        <section class="results-section" aria-labelledby="results-title">
+        <section class="results-section" aria-labelledby="results-title" :aria-busy="loading">
           <div class="results-header">
             <div>
               <p class="section-kicker">最新动态</p>
               <h2 id="results-title">最新记录</h2>
+              <p class="results-status" aria-live="polite">
+                {{ loading ? '正在从数据服务更新…' : `共 ${total} 条记录` }}
+              </p>
             </div>
 
             <div class="type-tabs" role="group" aria-label="记录类型">
-              <button type="button" :class="{ active: selectedType === 'all' }" @click="selectedType = 'all'">全部</button>
-              <button type="button" :class="{ active: selectedType === 'lost' }" @click="selectedType = 'lost'">失物</button>
-              <button type="button" :class="{ active: selectedType === 'found' }" @click="selectedType = 'found'">拾物</button>
+              <button type="button" :class="{ active: selectedType === 'all' }" @click="selectedType = 'all'; currentPage = 1">全部</button>
+              <button type="button" :class="{ active: selectedType === 'lost' }" @click="selectedType = 'lost'; currentPage = 1">失物</button>
+              <button type="button" :class="{ active: selectedType === 'found' }" @click="selectedType = 'found'; currentPage = 1">拾物</button>
             </div>
           </div>
 
-          <!-- v-if/v-else 分别处理“有结果”和“空结果”两种状态。 -->
-          <div v-if="filteredItems.length" class="item-grid" aria-live="polite">
-            <!-- v-for 循环生成卡片；点击后将当前物品赋给 selectedItem。 -->
-            <ItemCard v-for="item in filteredItems" :key="item.id" :item="item" @open="selectedItem = $event" />
+          <!-- 首次加载、服务错误、正常结果和空结果分别给出明确反馈。 -->
+          <div v-if="loading && !items.length" class="empty-state loading-state" role="status">
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <h3>正在加载记录</h3>
+            <p>正在连接校园失物招领数据服务。</p>
           </div>
+
+          <div v-else-if="errorMessage" class="empty-state error-state" role="alert">
+            <span aria-hidden="true">!</span>
+            <h3>暂时无法加载记录</h3>
+            <p>{{ errorMessage }}</p>
+            <button class="secondary-button" type="button" @click="loadItems">重新加载</button>
+          </div>
+
+          <template v-else-if="items.length">
+            <div class="item-grid" aria-live="polite">
+              <ItemCard v-for="item in items" :key="item.id" :item="item" @open="selectedItem = $event" />
+            </div>
+
+            <nav v-if="totalPages > 1" class="pagination" aria-label="记录分页">
+              <button type="button" :disabled="currentPage === 1 || loading" @click="changePage(currentPage - 1)">
+                上一页
+              </button>
+              <span>第 {{ currentPage }} / {{ totalPages }} 页</span>
+              <button type="button" :disabled="currentPage === totalPages || loading" @click="changePage(currentPage + 1)">
+                下一页
+              </button>
+            </nav>
+          </template>
 
           <div v-else class="empty-state" role="status">
             <span aria-hidden="true">🔎</span>
@@ -291,12 +295,10 @@ function navigate(label: string) {
       </div>
     </main>
 
-    <!-- transition 为提示消息添加淡入淡出效果。 -->
     <transition name="toast">
       <div v-if="notice" class="toast" role="status">{{ notice }}</div>
     </transition>
 
-    <!-- selectedItem 有值时打开详情，子组件发出 close 后恢复为 null。 -->
     <ItemDetailDialog v-if="selectedItem" :item="selectedItem" @close="selectedItem = null" />
   </div>
 </template>

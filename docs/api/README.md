@@ -2,7 +2,42 @@
 
 本目录用于存放接口约定、字段说明、错误码和接口变更记录。后端初始化后，以 FastAPI 自动生成的 OpenAPI 作为接口契约，并在持续集成中导出和校验；不要长期手工维护两套互相独立的接口定义。
 
-当前尚未定义任何业务接口。
+当前已定义首个只读业务接口 `GET /api/v1/items`。接口的可执行定义以 FastAPI 生成的 `/openapi.json` 为准；本文件记录跨端使用约定和示例。
+
+## 已实现接口
+
+### `GET /api/v1/items`
+
+查询公开的失物和拾物记录。正式运行时数据由 SQLAlchemy Repository 从 MySQL 获取；自动测试可以替换为内存 Repository。
+
+支持 `keyword`、`type`、`category`、`campus`、`area`、`status`、`days`、`page` 和 `page_size` 查询参数。未指定 `status` 时只返回 `active` 记录；结果按发生时间和标识符稳定倒序排列。
+
+成功响应示例：
+
+```json
+{
+  "items": [
+    {
+      "id": 3,
+      "type": "found",
+      "category": "数码",
+      "title": "白色无线耳机",
+      "description": "白色充电仓，外壳有轻微划痕，耳机已妥善保管。",
+      "location": "操场南门",
+      "campus": "宁河校区",
+      "area": null,
+      "occurred_at": "2026-09-29T08:00:00Z",
+      "status": "active",
+      "contact_hint": "请描述蓝牙名称或保护套特征。"
+    }
+  ],
+  "page": 1,
+  "page_size": 20,
+  "total": 1
+}
+```
+
+参数校验失败时返回 `422` 和下文规定的统一错误结构。
 
 ## 契约工作流
 

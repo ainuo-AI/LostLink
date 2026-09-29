@@ -43,6 +43,12 @@ button {
   color: inherit;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none;
+}
+
 button,
 select {
   cursor: pointer;
@@ -410,6 +416,12 @@ h1 {
   gap: 20px;
 }
 
+.results-status {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 .type-tabs {
   padding: 4px;
   display: flex;
@@ -629,6 +641,64 @@ h1 {
 
 .empty-state p {
   color: var(--muted);
+}
+
+/* 加载和服务错误复用空状态布局，让异步请求的每个阶段都有明确反馈。 */
+.loading-state,
+.error-state {
+  border-style: solid;
+}
+
+.loading-spinner {
+  width: 38px;
+  height: 38px;
+  border: 4px solid #d8e8f1;
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: loading-spin 800ms linear infinite;
+}
+
+.error-state > span {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: #a34c4c;
+  background: #fff0f0;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 分页控件只改变页码，当前搜索与筛选条件会继续保留。 */
+.pagination {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.pagination button {
+  padding: 8px 14px;
+  border: 1px solid #c4d8e4;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.pagination button:not(:disabled):hover {
+  border-color: #8fb8d0;
+  background: #f4f9fc;
 }
 
 .secondary-button {
