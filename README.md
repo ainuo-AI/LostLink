@@ -6,7 +6,7 @@
 
 LostLink 是面向校园失物招领场景的软件工程课程项目。当前前端原型用于验证失物和拾物记录的搜索、筛选与详情查看交互；它不包含真实用户、后端接口或持久化数据。
 
-项目希望把失物、拾物信息的发布、检索、匹配和状态跟踪集中到一个协作流程中，减少信息分散和重复沟通。当前产品范围仍处于团队确认阶段，需求草案见 [docs/requirements.md](docs/requirements.md)。
+项目希望把失物、拾物信息的发布、检索、匹配和状态跟踪集中到一个协作流程中，减少信息分散和重复沟通。当前产品范围仍处于团队确认阶段，需求草案见 [docs/product/requirements.md](docs/product/requirements.md)。
 
 ## 当前状态
 
@@ -62,13 +62,19 @@ LostLink/
 │  ├─ public/            # 公共静态资源
 │  ├─ src/               # 前端源码分层目录
 │  └─ tests/             # 前端测试目录
-├─ docs/                 # 架构、接口与设计文档
+├─ docs/                 # 项目级文档中心
+│  ├─ product/           # 需求范围与用户流程
+│  ├─ architecture/      # 系统、前端、后端、数据库与 ADR
+│  ├─ api/               # 跨端接口契约
+│  ├─ development/       # 环境、流程、测试与约定
+│  ├─ design/            # 页面、交互与视觉说明
+│  └─ operations/        # 部署、运行与安全
 ├─ scripts/              # 项目辅助脚本预留目录
 ├─ CONTRIBUTING.md       # 协作与提交规范
 └─ README.md             # 项目入口说明
 ```
 
-更完整的目录职责见 [docs/architecture.md](docs/architecture.md)。
+更完整的目录职责见 [系统架构总览](docs/architecture/overview.md)。
 
 ## 后续开发顺序
 
@@ -80,24 +86,11 @@ LostLink/
 
 ## 文档入口
 
-| 文档 | 用途 |
-| --- | --- |
-| [需求与范围](docs/requirements.md) | 明确做什么、不做什么以及如何验收 |
-| [本地环境搭建](docs/dev-setup.md) | 说明如何准备依赖并在开发电脑上运行项目 |
-| [架构边界](docs/architecture.md) | 说明系统拆分、数据流和模块职责 |
-| [首页设计说明](docs/design/README.md) | 说明首页交互、页面状态、响应式规则和已知缺口 |
-| [前端说明](frontend/README.md) | 说明前端运行、检查命令和目录职责 |
-| [开发流程](docs/development.md) | 从 Issue 到合并的完整工作流 |
-| [项目约定](docs/conventions.md) | 统一命名、依赖、文档和安全约定 |
-| [API 文档](docs/api/README.md) | 维护接口契约和变更规则 |
-| [数据库与迁移](docs/database.md) | 维护数据结构和 migration 流程 |
-| [测试策略](docs/testing.md) | 说明测试范围、分层和完成标准 |
-| [部署说明](docs/deploy.md) | 说明环境、发布、验证和回滚流程 |
-| [运行手册](docs/runbook.md) | 说明上线后的监控和故障处理 |
-| [安全说明](docs/security.md) | 说明数据、密钥、权限和漏洞处理要求 |
-| [技术决策记录](docs/adr/README.md) | 记录重要技术选择的背景和影响 |
-| [贡献指南](CONTRIBUTING.md) | 说明分支、提交、评审和协作要求 |
-| [变更记录](CHANGELOG.md) | 记录对使用者和开发者有影响的变化 |
+- [文档中心](docs/README.md)：按产品、架构、开发、设计和运维主题浏览全部文档。
+- [前端开发说明](frontend/README.md)：前端安装、运行、检查命令和目录职责。
+- [后端开发说明](backend/README.md)：后端当前状态、计划中的运行入口和目录职责。
+- [贡献指南](CONTRIBUTING.md)：分支、提交、评审和协作要求。
+- [变更记录](CHANGELOG.md)：对使用者和开发者有影响的变化。
 
 ## 开始协作
 

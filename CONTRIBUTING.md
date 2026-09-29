@@ -1,6 +1,6 @@
 # 参与 LostLink 开发
 
-开始前请先阅读 [需求与范围](docs/requirements.md)、[开发流程](docs/development.md) 和与改动有关的专项文档。尚未确认的需求应先讨论，不要直接进入实现。
+开始前请先阅读 [需求与范围](docs/product/requirements.md)、[开发流程](docs/development/workflow.md) 和与改动有关的专项文档。完整导航见 [文档中心](docs/README.md)。尚未确认的需求应先讨论，不要直接进入实现。
 
 ## 基本流程
 
