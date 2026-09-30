@@ -10,7 +10,7 @@ defineEmits<{
 }>()
 
 // 导航数据统一放在数组中，避免在模板里重复写按钮。
-const navItems = ['首页', '发布失物', '登记拾物', '匹配通知', '我的']
+const navItems = ['首页', '发布失物', '登记拾物', '匹配通知', '我的', '登录']
 </script>
 
 <template>
@@ -37,9 +37,23 @@ const navItems = ['首页', '发布失物', '登记拾物', '匹配通知', '我
         </button>
       </nav>
 
-      <button class="mobile-profile" type="button" aria-label="打开我的页面" @click="$emit('navigate', '我的')">
-        <span aria-hidden="true">👤</span>
-      </button>
+      <div class="mobile-nav">
+        <button class="mobile-profile mobile-login" type="button" @click="$emit('navigate', '我的')">我的</button>
+        <button class="mobile-profile mobile-login" type="button" @click="$emit('navigate', '登录')">登录</button>
+      </div>
     </div>
   </header>
 </template>
+
+<style scoped>
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 820px) {
+  .mobile-nav {
+    display: flex;
+    gap: 8px;
+  }
+}
+</style>
