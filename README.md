@@ -1,10 +1,10 @@
 # LostLink
 
-> 状态：前端首页原型已验证，后端尚未初始化
+> 状态：Vue、FastAPI 与 MySQL 的只读查询链路已验证
 >
-> 最后验证：2026-09-21
+> 最后验证：2026-09-30
 
-LostLink 是面向校园失物招领场景的软件工程课程项目。当前前端原型用于验证失物和拾物记录的搜索、筛选与详情查看交互；它不包含真实用户、后端接口或持久化数据。
+LostLink 是面向校园失物招领场景的软件工程课程项目。当前已实现从 Vue 首页经 FastAPI、SQLAlchemy 查询 MySQL 的只读链路，可验证失物和拾物记录的搜索、筛选、分页与详情查看交互；用户认证和信息发布等写入流程尚未实现。
 
 项目希望把失物、拾物信息的发布、检索、匹配和状态跟踪集中到一个协作流程中，减少信息分散和重复沟通。当前产品范围仍处于团队确认阶段，需求草案见 [docs/product/requirements.md](docs/product/requirements.md)。
 
@@ -16,22 +16,26 @@ LostLink 是面向校园失物招领场景的软件工程课程项目。当前�
 - 首页关键词搜索，以及类别、校区、时间和记录类型筛选。
 - 东丽校区北区/南区二级筛选，以及宁河校区整体筛选。
 - 记录卡片、空结果、详情弹窗和响应式布局。
+- FastAPI 应用入口、健康检查、统一错误响应和 OpenAPI 文档。
+- 使用 SQLAlchemy 查询 MySQL 的 `GET /api/v1/items` 筛选与分页接口。
+- MySQL 8.4 本地容器配置和首个 Alembic migration。
+- 前端 API 层单元测试，以及后端代码检查、接口测试和可选 MySQL 集成测试。
 
 尚未实现：
 
-- FastAPI 后端、MySQL 数据库和 Alembic 迁移。
-- 用户认证、失物/拾物发布、真实查询、匹配通知和文件上传。
-- 前端单元测试、后端测试和端到端测试。
+- 用户认证、失物/拾物发布与编辑、匹配通知和文件上传。
+- 浏览器端自动化测试，以及发布、认证和完整业务流程测试。
 
 ## 快速开始
 
-当前只能独立运行前端。Vite 6.4.3 要求 Node.js 18、20 或 22 及以上版本；本项目最后在 Node.js 24.14.1 和 npm 11.11.0 上验证。
+前端需要配合已启动的 FastAPI 和 MySQL 使用。Vite 6.4.3 要求 Node.js 18、20 或 22 及以上版本；本项目最后在 Node.js 24.14.1 和 npm 11.11.0 上验证。请先按 [backend/README.md](backend/README.md) 启动数据库、执行迁移和演示数据脚本，再启动前端。
 
 在仓库根目录使用 Windows PowerShell 执行：
 
 ```powershell
 cd frontend
 npm.cmd install
+Copy-Item .env.example .env
 npm.cmd run dev
 ```
 
@@ -41,6 +45,7 @@ npm.cmd run dev
 
 ```powershell
 cd frontend
+npm.cmd test
 npm.cmd run type-check
 npm.cmd run build
 ```
@@ -99,4 +104,4 @@ LostLink/
 3. 按 [CONTRIBUTING.md](CONTRIBUTING.md) 创建分支并提交 Pull Request。
 4. 功能、测试和相关文档在同一个 Pull Request 中交付。
 
-当前前端首页原型可按“快速开始”中的命令独立运行；后端尚未初始化，暂时没有后端安装或启动命令。
+当前首页只读查询已完成前后端联调；下一阶段可实现用户认证和失物/拾物发布接口，并补充浏览器端自动化测试。

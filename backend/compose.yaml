@@ -1,0 +1,32 @@
+# 本地 MySQL 服务：macOS 与 Windows 使用相同配置，避免团队成员手工安装不同版本。
+name: lostlink
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-lostlink}
+      MYSQL_USER: ${MYSQL_USER:-lostlink_app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-lostlink_local}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-lostlink_root_local}
+      TZ: UTC
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+00:00
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:

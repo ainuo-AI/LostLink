@@ -1,17 +1,16 @@
 # 本地开发环境
 
-> 状态：前端步骤已验证；后端和数据库步骤等待工程初始化。
+> 状态：Vue、FastAPI、MySQL 和 Alembic 本地运行及只读接口联调已验证。
 >
-> 最后验证：2026-09-21
+> 最后验证：2026-09-30
 
 本文提供从获取仓库到验证当前可运行部分的完整入口。前端和后端的专项命令分别维护在 [frontend/README.md](../../frontend/README.md) 和 [backend/README.md](../../backend/README.md)。
 
 ## 当前可以运行什么
 
-- 可以独立运行 Vue 前端首页原型。
-- 前端使用页面内虚构数据，不需要 `.env`、数据库或后端服务。
-- 后端目录目前只是结构骨架，不能安装或启动。
-- MySQL、Alembic、真实 API 和端到端测试尚未配置。
+- 可以运行 Vue 首页，并通过 FastAPI 查询 MySQL 中的物品记录。
+- 后端提供健康检查和通过 SQLAlchemy 查询 MySQL 的物品列表接口。
+- MySQL Compose 配置、首个 Alembic migration 和演示数据脚本已完成；浏览器端自动化测试尚未配置。
 
 ## 1. 获取项目
 
@@ -35,49 +34,53 @@ npm.cmd --version
 
 Windows PowerShell 建议使用 `npm.cmd`，避免本机执行策略阻止 `npm.ps1`。
 
-## 3. 安装并启动前端
+## 3. 安装并启动后端
+
+后端使用 Python 3.12 和 uv。在仓库根目录另开终端执行：
+
+```powershell
+cd backend
+uv sync
+Copy-Item .env.example .env
+docker compose up -d mysql
+uv run alembic upgrade head
+uv run python -m scripts.seed_items
+uv run uvicorn app.main:app --reload
+```
+
+访问 `http://127.0.0.1:8000/health` 应获得状态响应，访问 `http://127.0.0.1:8000/docs` 可以查看 OpenAPI 页面。详细接口和检查命令见 [后端开发说明](../../backend/README.md)。
+
+## 4. 安装并启动前端
 
 ```powershell
 cd frontend
 npm.cmd install
+Copy-Item .env.example .env
 npm.cmd run dev
 ```
 
-Vite 默认显示类似 `http://127.0.0.1:5173/` 的本地地址。打开页面后应能看到演示记录，并使用关键词、类别、校区、时间和记录类型筛选。
+`.env.example` 默认把 API 地址设置为 `http://127.0.0.1:8000`。Vite 默认显示类似 `http://127.0.0.1:5173/` 的本地地址。打开页面后应能看到 MySQL 中的演示记录，并使用关键词、类别、校区、时间和记录类型筛选。
 
 停止服务时在运行终端按 `Ctrl+C`。
 
-## 4. 检查前端
+## 5. 检查前端
 
 在 `frontend/` 目录执行：
 
 ```powershell
+npm.cmd test
 npm.cmd run type-check
 npm.cmd run build
 ```
 
 预期结果：
 
+- 4 个接口层单元测试通过。
 - 类型检查退出码为 0。
 - Vite 在 `frontend/dist/` 生成生产构建结果。
 - `dist/` 是本地产物，不提交到 Git。
 
-当前没有前端单元测试或端到端测试，因此不能把以上两项检查表述为“测试通过”。
-
-## 5. 后端与本地依赖
-
-后端尚未初始化，目前没有经过验证的 Python 版本、依赖安装、环境变量、数据库 migration 或启动命令。不要根据目录名称自行假设这些能力已经存在。
-
-初始化后端时，应在 `backend/README.md` 中补充并验证：
-
-1. 支持的 Python 版本和依赖管理方式。
-2. `.env.example` 中每个变量的用途和非敏感示例。
-3. MySQL 或其他本地依赖的启动与健康检查方法。
-4. Alembic 升级、查看版本和安全回滚命令。
-5. FastAPI 开发服务、健康检查和 OpenAPI 地址。
-6. 格式检查、静态检查和测试命令。
-
-完整系统可以宣称“本地搭建完成”前，应验证前端能够访问真实 API、migration 可从空数据库执行、最小测试集通过，并且所有服务停止后可以重新启动。
+当前尚无浏览器端自动化测试，页面到数据库的完整链路已使用真实浏览器人工验证。列表接口需要 MySQL；默认后端测试使用内存 Repository，不会连接个人数据库，数据库集成测试必须使用已迁移的隔离 MySQL。
 
 ## 常见问题
 

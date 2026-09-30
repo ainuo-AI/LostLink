@@ -1,12 +1,34 @@
-// 用联合类型限制记录只能是“失物”或“拾物”，避免拼写错误。
+/** 失物与拾物模块的 API 类型和页面展示类型。 */
+
 export type RecordType = 'lost' | 'found'
-
-// 校区使用固定枚举值，便于前后端统一地点字段。
 export type Campus = '东丽校区' | '宁河校区'
-export type CampusArea = '北区' | '南区' | ''
+export type CampusArea = '北区' | '南区'
+export type ItemStatus = 'active' | 'recovered' | 'returned' | 'closed'
 
-// 失物/拾物卡片的统一数据结构。
-// 后续接入 FastAPI 时，后端响应可直接转换为该类型。
+/** FastAPI 返回的原始记录，字段名与 OpenAPI 契约保持一致。 */
+export interface ApiItem {
+  id: number
+  type: RecordType
+  category: string
+  title: string
+  description: string
+  location: string
+  campus: Campus
+  area: CampusArea | null
+  occurred_at: string
+  status: ItemStatus
+  contact_hint: string
+}
+
+/** FastAPI 列表接口的分页响应。 */
+export interface ApiItemListResponse {
+  items: ApiItem[]
+  page: number
+  page_size: number
+  total: number
+}
+
+/** 页面组件使用的驼峰命名和展示增强数据。 */
 export interface LostFoundItem {
   id: number
   type: RecordType
@@ -15,10 +37,10 @@ export interface LostFoundItem {
   description: string
   location: string
   campus: Campus
-  // 只有东丽校区继续区分北区和南区；宁河校区使用空字符串。
-  area: CampusArea
+  area: CampusArea | ''
+  occurredAt: string
   displayTime: string
-  daysAgo: number
+  status: ItemStatus
   icon: string
   color: string
   contactHint: string

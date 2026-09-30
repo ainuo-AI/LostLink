@@ -1,6 +1,6 @@
 # 测试策略
 
-> 状态：初稿。前端已有类型检查和生产构建，但尚未配置自动测试；后端尚未初始化。测试框架和命令应在实际引入后补充，并以持续集成中执行的命令为准。
+> 状态：前端已配置 Vitest；后端已配置 pytest，并覆盖健康检查、OpenAPI、物品列表接口和 MySQL Repository。浏览器端自动化测试尚未配置。
 
 ## 测试目标
 
@@ -17,6 +17,30 @@
 | 前端单元测试 | 组件、Store、格式化和校验逻辑 | `frontend/tests/` |
 | 契约测试 | 请求、响应、状态码和错误格式与 OpenAPI 一致 | 前后端测试目录 |
 | 端到端测试 | 发布、搜索、匹配反馈和关闭信息等核心流程 | 框架确定后指定目录 |
+
+## 当前前端测试
+
+在 `frontend/` 目录执行：
+
+```bash
+npm test
+npm run type-check
+npm run build
+```
+
+Vitest 当前覆盖查询参数序列化、FastAPI 错误转换、接口数据到页面模型的转换和时间显示格式。类型检查与生产构建用于发现组件类型和打包问题，但不能代替浏览器端端到端测试。
+
+## 当前后端测试
+
+在 `backend/` 目录执行：
+
+```bash
+uv run pytest
+```
+
+默认测试使用 FastAPI 测试客户端和内存演示仓储，不连接个人数据库，也不会调用外部服务。设置 `TEST_DATABASE_URL` 后执行 `uv run pytest -m mysql`，可以针对已迁移并写入演示数据的隔离 MySQL 验证正式 Repository。
+
+Alembic migration 还需要在一次性数据库中验证 `upgrade head → downgrade base → upgrade head`。不得使用包含有效数据的共享数据库执行破坏性回滚测试。
 
 ## 每个功能至少验证
 

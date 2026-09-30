@@ -1,6 +1,6 @@
 # 数据库与迁移
 
-> 状态：规范草案。当前仓库没有数据库模型、Alembic 配置或 migration，因此本文不提供尚不可执行的命令。
+> 状态：首个 `items` 模型、Alembic 配置和 migration 已实现，并已在空 MySQL 数据库验证升级、回滚和重新升级。
 
 ## 目标
 
@@ -16,7 +16,7 @@
 6. 验证回滚；无法安全回滚时，在 migration 和部署说明中明确标注。
 7. 在同一个 Pull Request 中更新测试、数据字典和部署说明。
 
-后端初始化后，应在 [backend/README.md](../../backend/README.md) 中补充并实际验证以下命令：创建 migration、升级到最新版本、查看当前版本、回滚一个版本。
+已经验证的升级、查看版本、查看历史和回滚命令维护在 [backend/README.md](../../backend/README.md)。
 
 ## 命名与编写要求
 
@@ -30,7 +30,36 @@
 
 ## 数据字典
 
-数据模型确定后，在此维护或链接自动生成的数据字典。每张表至少说明：
+### `items`
+
+用途：保存公开的失物与拾物记录。时间统一以 UTC 写入 MySQL `DATETIME(6)`，API 返回时恢复为带时区的 ISO 8601 字符串。
+
+| 字段 | 类型 | 可空 | 说明 |
+| --- | --- | --- | --- |
+| `id` | `BIGINT` | 否 | 自增主键 |
+| `type` | `VARCHAR(16)` | 否 | `lost` 或 `found` |
+| `category` | `VARCHAR(50)` | 否 | 物品类别 |
+| `title` | `VARCHAR(120)` | 否 | 记录标题 |
+| `description` | `TEXT` | 否 | 公开描述 |
+| `location` | `VARCHAR(120)` | 否 | 具体地点文本 |
+| `campus` | `VARCHAR(20)` | 否 | 东丽校区或宁河校区 |
+| `area` | `VARCHAR(20)` | 是 | 东丽校区为北区或南区；宁河校区为空 |
+| `occurred_at` | `DATETIME(6)` | 否 | 物品丢失或拾到时间，按 UTC 解释 |
+| `status` | `VARCHAR(16)` | 否 | `active`、`recovered`、`returned` 或 `closed` |
+| `contact_hint` | `VARCHAR(255)` | 否 | 公开的联系核验提示，不保存完整联系方式 |
+| `created_at` | `DATETIME(6)` | 否 | 数据创建时间 |
+| `updated_at` | `DATETIME(6)` | 否 | 最近更新时间 |
+
+约束与索引：
+
+- 检查记录类型、状态、校区以及校区与区域的合法组合。
+- `status + occurred_at + id` 复合索引支持默认列表的筛选和稳定排序。
+- 类型、类别以及校区与区域组合具有辅助筛选索引。
+- 表使用 `utf8mb4` 和 `utf8mb4_0900_ai_ci`，满足中文及 emoji 存储和不区分大小写搜索。
+
+当前表不保存发布者和联系方式；这些字段将在认证与权限模型确认后通过新 migration 增加。
+
+后续新增表时，每张表至少说明：
 
 | 内容 | 说明 |
 | --- | --- |

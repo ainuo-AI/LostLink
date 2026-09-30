@@ -1,8 +1,8 @@
 # 前端架构
 
-> 状态：首页原型已实现；API、Router、Store 和 Layout 目录仍为预留结构。
+> 状态：首页只读 API 交互已实现；Router、Store 和 Layout 目录仍为预留结构。
 >
-> 最后核对：2026-09-26
+> 最后核对：2026-09-30
 
 本文记录前端模块边界和依赖原则。安装、运行和检查命令见 [frontend/README.md](../../frontend/README.md)，页面和交互状态见 [设计资料](../design/README.md)。
 
@@ -18,10 +18,13 @@ App.vue
 HomeView.vue
     ├─ SiteHeader.vue
     ├─ ItemCard.vue
-    └─ ItemDetailDialog.vue
+    ├─ ItemDetailDialog.vue
+    └─ api/items.ts
+          ↓
+       api/client.ts
 ```
 
-`HomeView.vue` 当前持有虚构记录和筛选状态，通过 `computed` 计算可见结果。父组件使用 Props 向卡片和弹窗传递记录，子组件通过 Emit 通知父组件。共享记录类型位于 `src/types/item.ts`。
+`HomeView.vue` 持有筛选、分页、加载和错误状态，通过 `api/items.ts` 请求后端并将 API 数据转换为页面模型。过期请求会通过 `AbortController` 取消。父组件使用 Props 向卡片和弹窗传递记录，子组件通过 Emit 通知父组件。API 与页面共享类型位于 `src/types/item.ts`。
 
 ## 模块职责
 
@@ -47,7 +50,7 @@ HomeView.vue
 - 前端只通过公开 HTTP API 访问业务能力，不连接数据库或携带服务端密钥。
 - 请求、响应、错误和兼容性以 [API 契约](../api/README.md) 为准。
 - 权限必须由后端执行；前端隐藏按钮不能作为安全控制。
-- 后端初始化后，优先从 OpenAPI 生成或校验接口类型，避免手工维护两套字段定义。
+- 接口继续扩展时，优先从 OpenAPI 生成或校验接口类型，避免手工维护两套字段定义。
 
 ## 引入新基础设施的条件
 
