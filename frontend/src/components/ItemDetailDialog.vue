@@ -2,9 +2,12 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 import type { LostFoundItem } from '../types/item'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   item: LostFoundItem
-}>()
+  showClaimAction?: boolean
+}>(), {
+  showClaimAction: true,
+})
 
 const emit = defineEmits<{
   close: []
@@ -61,7 +64,7 @@ onBeforeUnmount(() => {
             <dd>{{ props.item.contactHint }}</dd>
           </div>
         </dl>
-        <button class="primary-button wide" type="button">
+        <button v-if="props.showClaimAction" class="primary-button wide" type="button">
           {{ props.item.type === 'lost' ? '我可能找到了' : '这可能是我的' }}
         </button>
       </div>

@@ -7,6 +7,11 @@ import ItemDetailDialog from '../components/ItemDetailDialog.vue'
 import SiteHeader from '../components/SiteHeader.vue'
 import type { Campus, CampusArea, LostFoundItem, RecordType } from '../types/item'
 
+const emit = defineEmits<{
+  login: []
+  profile: []
+}>()
+
 const PAGE_SIZE = 6
 
 // 首页状态由真实 API 响应驱动，不再保存与后端重复的本地记录数组。
@@ -142,6 +147,14 @@ function changePage(page: number) {
 // 其他页面尚未实现，点击后使用轻提示告知用户，而不是出现无反应的按钮。
 function navigate(label: string) {
   if (label === '首页') return
+  if (label === '我的') {
+    emit('profile')
+    return
+  }
+  if (label === '登录') {
+    emit('login')
+    return
+  }
   notice.value = `「${label}」将在后续迭代中开放`
   window.setTimeout(() => {
     notice.value = ''
@@ -157,7 +170,7 @@ function navigate(label: string) {
       <section class="intro-section" aria-labelledby="page-title">
         <div>
           <p class="eyebrow">CAMPUS LOST &amp; FOUND</p>
-          <h1 id="page-title">找回遗失，连接线索</h1>
+          <h1 id="page-title" tabindex="-1">找回遗失，连接线索</h1>
           <p class="intro-copy">搜索校园失物与拾物记录，让每一件物品都有回家的可能。</p>
         </div>
         <div class="intro-stat" aria-label="当前有效线索">
