@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import SiteHeader from '../components/SiteHeader.vue'
 import ItemCard from '../components/ItemCard.vue'
-import ItemDetailDialog from '../components/ItemDetailDialog.vue'
+import { cacheItemForNavigation } from '../stores/itemNavigation'
 import type { ItemStatus, LostFoundItem, RecordType } from '../types/item'
 
 const PAGE_SIZE = 6
+const router = useRouter()
 const selectedType = ref<RecordType>('lost')
 const status = ref<'all' | ItemStatus>('all')
 const currentPage = ref(1)
 const demoItems = ref<LostFoundItem[]>([])
 const showDemoRecords = ref(false)
-const selectedItem = ref<LostFoundItem | null>(null)
-const notice = ref('')
 
 const statusLabels: Record<ItemStatus, string> = {
   active: '进行中',
@@ -40,26 +40,23 @@ const visibleItems = computed(() => filteredDemoItems.value.slice(
 
 watch([selectedType, status, showDemoRecords], () => {
   currentPage.value = 1
-  selectedItem.value = null
 })
 
 function changePage(nextPage: number) {
   if (nextPage < 1 || nextPage > totalPages.value) return
   currentPage.value = nextPage
-  selectedItem.value = null
 }
 
-function navigate(label: string) {
-  if (label === '首页') window.location.hash = '/'
-  else if (label === '登录') window.location.hash = '/login'
-  else if (label === '我的') window.location.hash = '/my'
-  else notice.value = `「${label}」将在后续迭代中开放`
+/** 个人页演示记录沿用独立详情页，不再维护第二套详情弹窗。 */
+function openItem(item: LostFoundItem) {
+  cacheItemForNavigation(item)
+  void router.push({ name: 'item-detail', params: { id: item.id } })
 }
 </script>
 
 <template>
   <div class="app-shell">
-    <SiteHeader active-nav="我的" @navigate="navigate" />
+    <SiteHeader active-nav="我的" />
     <main class="profile-main">
       <section class="intro-section" aria-labelledby="profile-title">
         <div>
@@ -72,7 +69,7 @@ function navigate(label: string) {
       <aside class="profile-preview-note" aria-label="开发预览说明">
         <strong>开发预览 · 相关服务暂未接入</strong>
         <p>此页面仅预览布局和交互，不代表登录成功。用户信息与个人记录尚不可用。</p>
-        <a href="#/login">返回登录</a>
+        <RouterLink :to="{ name: 'login' }">返回登录</RouterLink>
       </aside>
 
       <section class="profile-summary" aria-labelledby="profile-summary-title">
@@ -119,7 +116,7 @@ function navigate(label: string) {
           <p class="profile-demo-note" role="status">开发演示：以下为虚构物品，仅用于预览，非个人数据。筛选后共 {{ filteredDemoItems.length }} 条演示记录。</p>
           <div v-if="visibleItems.length" class="item-grid">
             <div v-for="item in visibleItems" :key="item.id" class="profile-record">
-              <ItemCard :item="item" @open="selectedItem = $event" />
+              <ItemCard :item="item" @open="openItem" />
               <p class="profile-record-status">状态：{{ statusLabels[item.status] }}</p>
             </div>
           </div>
@@ -138,7 +135,7 @@ function navigate(label: string) {
           <div class="empty-state profile-unavailable" role="status">
             <h3>个人记录服务暂未接入</h3>
             <p>当前无法读取{{ selectedType === 'lost' ? '我的失物' : '我的拾物' }}，也无法确认记录总量。</p>
-            <a class="secondary-button auth-link-button" href="#/login">返回登录</a>
+            <RouterLink class="secondary-button auth-link-button" :to="{ name: 'login' }">返回登录</RouterLink>
           </div>
           <nav class="pagination" aria-label="个人记录分页">
             <button type="button" disabled>上一页</button>
@@ -147,10 +144,7 @@ function navigate(label: string) {
           </nav>
         </template>
       </section>
-      <p v-if="notice" class="profile-hint" role="status">{{ notice }}</p>
     </main>
-
-    <ItemDetailDialog v-if="selectedItem" :item="selectedItem" :show-claim-action="false" @close="selectedItem = null" />
   </div>
 </template>
 

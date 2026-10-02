@@ -7,6 +7,6 @@ defineProps<{ title: string; description: string }>()
     <span class="admin-service-mark" aria-hidden="true">—</span>
     <h2>{{ title }}暂未接入</h2>
     <p>{{ description }}</p>
-    <a class="secondary-button auth-link-button" href="#/login">返回登录</a>
+    <RouterLink class="secondary-button auth-link-button" :to="{ name: 'login' }">返回登录</RouterLink>
   </div>
 </template>

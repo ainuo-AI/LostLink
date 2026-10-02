@@ -15,19 +15,19 @@ const menuOpen = ref(false)
   <div class="admin-shell">
     <aside class="admin-sidebar">
       <div class="admin-brand-row">
-        <a class="brand" href="#/" aria-label="返回 LostLink 校园首页">
+        <RouterLink class="brand" :to="{ name: 'home' }" aria-label="返回 LostLink 校园首页">
           <span class="brand-mark" aria-hidden="true"><span class="brand-link brand-link-a"></span><span class="brand-link brand-link-b"></span></span>
           <span>LostLink</span>
-        </a>
+        </RouterLink>
         <button class="admin-menu-toggle" type="button" :aria-expanded="menuOpen" aria-controls="admin-nav" @click="menuOpen = !menuOpen">管理菜单</button>
       </div>
       <p class="admin-sidebar-caption">管理控制台</p>
       <nav id="admin-nav" :class="['admin-nav', { open: menuOpen }]" aria-label="管理导航">
-        <a v-for="(item, index) in adminSections" :key="item.id" :href="`#/admin-preview/${item.id}`" :class="{ active: section === item.id }" :aria-current="section === item.id ? 'page' : undefined" @click="menuOpen = false">
+        <RouterLink v-for="(item, index) in adminSections" :key="item.id" :to="{ name: 'admin-preview', params: { section: item.id } }" :class="{ active: section === item.id }" :aria-current="section === item.id ? 'page' : undefined" @click="menuOpen = false">
           <span aria-hidden="true">0{{ index + 1 }}</span>{{ item.label }}
-        </a>
+        </RouterLink>
       </nav>
-      <a class="admin-campus-link" href="#/">返回校园首页</a>
+      <RouterLink class="admin-campus-link" :to="{ name: 'home' }">返回校园首页</RouterLink>
     </aside>
     <div class="admin-body">
       <header class="admin-topbar">

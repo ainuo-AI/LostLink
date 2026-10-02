@@ -115,6 +115,6 @@ async function submitRegistration() {
       <button class="primary-button wide" type="submit" aria-describedby="register-service-note">注册账号（服务暂未接入）</button>
     </form>
 
-    <p class="auth-switch">已有账号，<a href="#/login">返回登录</a></p>
+    <p class="auth-switch">已有账号，<RouterLink :to="{ name: 'login' }">返回登录</RouterLink></p>
   </AuthLayout>
 </template>

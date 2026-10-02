@@ -8,14 +8,8 @@ export const adminSections = [
 
 export type AdminSection = typeof adminSections[number]['id']
 
-export function isAdminPath(hash: string) {
-  return hash === '#/admin' || hash.startsWith('#/admin/')
-}
-
-export function isAdminPreviewPath(hash: string) {
-  return hash === '#/admin-preview' || hash.startsWith('#/admin-preview/')
-}
-
-export function readAdminSection(hash: string): AdminSection {
-  return adminSections.find(section => section.id === hash.split('/')[2])?.id ?? 'overview'
+/** 将 URL 参数限制为已知管理栏目，未知值安全回退到概览页。 */
+export function readAdminSection(value: unknown): AdminSection {
+  const sectionValue = Array.isArray(value) ? value[0] : value
+  return adminSections.find(section => section.id === sectionValue)?.id ?? 'overview'
 }

@@ -9,14 +9,14 @@ defineProps<{
   <div class="app-shell">
     <header class="site-header">
       <div class="header-inner">
-        <a class="brand auth-brand" href="#/" aria-label="返回 LostLink 首页">
+        <RouterLink class="brand auth-brand" :to="{ name: 'home' }" aria-label="返回 LostLink 首页">
           <span class="brand-mark" aria-hidden="true">
             <span class="brand-link brand-link-a"></span>
             <span class="brand-link brand-link-b"></span>
           </span>
           <span>LostLink</span>
-        </a>
-        <a class="auth-home-link" href="#/">返回首页</a>
+        </RouterLink>
+        <RouterLink class="auth-home-link" :to="{ name: 'home' }">返回首页</RouterLink>
       </div>
     </header>
 

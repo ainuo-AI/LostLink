@@ -1,8 +1,8 @@
 # API 文档
 
-本目录用于存放接口约定、字段说明、错误码和接口变更记录。后端初始化后，以 FastAPI 自动生成的 OpenAPI 作为接口契约，并在持续集成中导出和校验；不要长期手工维护两套互相独立的接口定义。
+本目录用于存放接口约定、字段说明、错误码和接口变更记录。当前后端由 FastAPI 生成 OpenAPI，运行后可访问 `/openapi.json` 和 `/docs`；仓库尚未配置持续集成导出或校验 OpenAPI，不要把它写成已有自动流程。
 
-当前已定义首个只读业务接口 `GET /api/v1/items`。接口的可执行定义以 FastAPI 生成的 `/openapi.json` 为准；本文件记录跨端使用约定和示例。
+当前仅有只读业务接口 `GET /api/v1/items`，另有 `GET /health` 健康检查。接口的可执行定义以 FastAPI 生成的 `/openapi.json` 为准；本文件记录跨端使用约定和示例。前端发布、拾物登记、举报、匹配通知及反馈没有后端接口，它们只调用浏览器本地模拟服务。
 
 ## 已实现接口
 
@@ -12,7 +12,7 @@
 
 支持 `keyword`、`type`、`category`、`campus`、`area`、`status`、`days`、`page` 和 `page_size` 查询参数。未指定 `status` 时只返回 `active` 记录；结果按发生时间和标识符稳定倒序排列。
 
-成功响应示例：
+成功响应示例（虚构值，仅示意字段结构，不代表当前数据库记录）：
 
 ```json
 {
@@ -47,7 +47,7 @@
 4. 使用契约测试检查实现与定义是否一致。
 5. 行为变化时在同一个 Pull Request 中更新契约、测试和相关说明。
 
-OpenAPI 文件的位置、生成命令和文档预览方式应在后端工程初始化时确定，并更新本文件与 `backend/README.md`。
+本地启动命令见 [backend/README.md](../../backend/README.md)。服务启动后访问 `http://127.0.0.1:8000/openapi.json` 获取当前契约，或访问 `http://127.0.0.1:8000/docs` 预览；尚无仓库内固定的导出文件和自动契约测试。
 
 ## 基本约定
 
@@ -61,13 +61,19 @@ OpenAPI 文件的位置、生成命令和文档预览方式应在后端工程初
 
 ## 错误响应
 
-所有业务错误应使用统一结构。最终字段在首个接口评审时确认，至少应能表达：
+后端已实现统一错误结构。以下是格式示意，`request_id` 为示例值：
 
 ```json
 {
-  "code": "ITEM_NOT_FOUND",
-  "message": "未找到指定信息",
-  "details": null,
+  "code": "VALIDATION_ERROR",
+  "message": "请求参数不正确",
+  "details": [
+    {
+      "field": "query.page",
+      "message": "Input should be greater than or equal to 1",
+      "type": "greater_than_equal"
+    }
+  ],
   "request_id": "示例请求标识"
 }
 ```
@@ -76,6 +82,8 @@ OpenAPI 文件的位置、生成命令和文档预览方式应在后端工程初
 - `message` 是可展示或便于理解的概括，不包含内部堆栈或敏感数据。
 - `details` 用于字段校验等结构化信息。
 - `request_id` 用于关联日志，不能包含个人信息。
+
+当前参数校验错误返回 HTTP `422`、`code=VALIDATION_ERROR`，`details` 为字段、消息和类型的数组；数据库异常返回 HTTP `503`、`code=DATABASE_UNAVAILABLE`；未处理异常返回 HTTP `500`、`code=INTERNAL_SERVER_ERROR`。这些状态由当前异常处理器定义，不表示尚未实现的发布或匹配接口已有对应错误契约。
 
 ## 兼容性
 

@@ -15,10 +15,10 @@ const metrics = ['待处理举报', '已处理举报', '受限用户', '评估�
     <div class="admin-panel">
       <h2>工作入口</h2>
       <div class="admin-shortcuts">
-        <a href="#/admin-preview/reports"><strong>举报审核 →</strong><span>查看举报、关联对象与处理历史</span></a>
-        <a href="#/admin-preview/users"><strong>用户管理 →</strong><span>搜索账号与查看状态</span></a>
-        <a href="#/admin-preview/audit"><strong>审计日志 →</strong><span>按操作对象和时间追溯记录</span></a>
-        <a href="#/admin-preview/calibration"><strong>匹配校准 →</strong><span>查看任务状态与版本对比</span></a>
+        <RouterLink :to="{ name: 'admin-preview', params: { section: 'reports' } }"><strong>举报审核 →</strong><span>查看举报、关联对象与处理历史</span></RouterLink>
+        <RouterLink :to="{ name: 'admin-preview', params: { section: 'users' } }"><strong>用户管理 →</strong><span>搜索账号与查看状态</span></RouterLink>
+        <RouterLink :to="{ name: 'admin-preview', params: { section: 'audit' } }"><strong>审计日志 →</strong><span>按操作对象和时间追溯记录</span></RouterLink>
+        <RouterLink :to="{ name: 'admin-preview', params: { section: 'calibration' } }"><strong>匹配校准 →</strong><span>查看任务状态与版本对比</span></RouterLink>
       </div>
     </div>
     <AdminServiceNotice v-if="!demo" title="管理概览服务" description="无法加载真实管理统计；服务缺失不代表待处理数量为零。" />

@@ -17,9 +17,9 @@ const isDevelopment = import.meta.env.DEV
     <button class="primary-button wide" type="button" disabled>登录（暂未开放）</button>
     <div class="auth-register-entry">
       <p>还没有账号？</p>
-      <a class="secondary-button auth-link-button" href="#/register">注册账号</a>
+      <RouterLink class="secondary-button auth-link-button" :to="{ name: 'register' }">注册账号</RouterLink>
     </div>
-    <p v-if="isDevelopment" class="auth-switch"><a href="#/my-preview">开发预览：我的页面（非登录状态）</a></p>
-    <p v-if="isDevelopment" class="auth-switch"><a href="#/admin-preview/overview">开发预览：管理控制台（非管理员会话）</a></p>
+    <p v-if="isDevelopment" class="auth-switch"><RouterLink :to="{ name: 'my-preview' }">开发预览：我的页面（非登录状态）</RouterLink></p>
+    <p v-if="isDevelopment" class="auth-switch"><RouterLink :to="{ name: 'admin-preview', params: { section: 'overview' } }">开发预览：管理控制台（非管理员会话）</RouterLink></p>
   </AuthLayout>
 </template>
