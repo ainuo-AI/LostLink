@@ -1,8 +1,4 @@
-<script setup lang="ts">
-import HomeView from './views/HomeView.vue'
-</script>
-
 <template>
-  <!-- 当前只实现首页；后续加入 Vue Router 后，这里可替换为 RouterView。 -->
-  <HomeView />
+  <!-- 根组件只提供路由出口，各页面由 src/router/index.ts 根据当前 URL 切换。 -->
+  <RouterView />
 </template>

@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { ApiError } from '../api/client'
 import { fetchItems, toLostFoundItem } from '../api/items'
 import ItemCard from '../components/ItemCard.vue'
-import ItemDetailDialog from '../components/ItemDetailDialog.vue'
 import SiteHeader from '../components/SiteHeader.vue'
+import { cacheItemForNavigation } from '../stores/itemNavigation'
 import type { Campus, CampusArea, LostFoundItem, RecordType } from '../types/item'
 
 const PAGE_SIZE = 6
+const router = useRouter()
 
 // 首页状态由真实 API 响应驱动，不再保存与后端重复的本地记录数组。
 const items = ref<LostFoundItem[]>([])
@@ -22,7 +24,6 @@ const category = ref('all')
 const campus = ref<'all' | Campus>('all')
 const area = ref<'all' | CampusArea>('all')
 const timeRange = ref('30')
-const selectedItem = ref<LostFoundItem | null>(null)
 const filtersOpen = ref(false)
 const notice = ref('')
 
@@ -68,7 +69,6 @@ async function loadItems() {
     if (controller.signal.aborted) return
     items.value = response.items.map(toLostFoundItem)
     total.value = response.total
-    selectedItem.value = null
   } catch (error) {
     if (controller.signal.aborted || (error instanceof Error && error.name === 'AbortError')) return
 
@@ -139,9 +139,15 @@ function changePage(page: number) {
   document.querySelector('.results-section')?.scrollIntoView({ behavior: 'smooth' })
 }
 
-// 其他页面尚未实现，点击后使用轻提示告知用户，而不是出现无反应的按钮。
+/** 功能对应：首页物品卡片点击后进入独立详情页。 */
+function openItem(item: LostFoundItem) {
+  // 纯前端实现：先缓存用户点中的卡片，详情页无需新增后端接口即可立即展示。
+  cacheItemForNavigation(item)
+  void router.push({ name: 'item-detail', params: { id: item.id } })
+}
+
+// 已实现的主导航由 SiteHeader 的 RouterLink 处理；这里只提示尚未实现的“我的”。
 function navigate(label: string) {
-  if (label === '首页') return
   notice.value = `「${label}」将在后续迭代中开放`
   window.setTimeout(() => {
     notice.value = ''
@@ -271,7 +277,8 @@ function navigate(label: string) {
 
           <template v-else-if="items.length">
             <div class="item-grid" aria-live="polite">
-              <ItemCard v-for="item in items" :key="item.id" :item="item" @open="selectedItem = $event" />
+              <!-- 功能对应：卡片 open 事件统一交给路由，URL 形如 /items/1。 -->
+              <ItemCard v-for="item in items" :key="item.id" :item="item" @open="openItem" />
             </div>
 
             <nav v-if="totalPages > 1" class="pagination" aria-label="记录分页">
@@ -298,7 +305,5 @@ function navigate(label: string) {
     <transition name="toast">
       <div v-if="notice" class="toast" role="status">{{ notice }}</div>
     </transition>
-
-    <ItemDetailDialog v-if="selectedItem" :item="selectedItem" @close="selectedItem = null" />
   </div>
 </template>

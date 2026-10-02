@@ -121,12 +121,10 @@ GET /api/v1/items?keyword=耳机&type=found&campus=宁河校区&page=1&page_size
 - `app/schemas/`：请求与响应数据结构
 - `app/repositories/`：数据访问
 - `app/services/`：业务编排
-- `app/matching/`：匹配策略
-- `app/calibration/`：反馈校准策略
-- `app/integrations/`：外部 AI、地图和通知适配器
-- `app/tasks/`：后台任务
 - `alembic/`：数据库迁移
 - `tests/`：后端测试
+
+`app/matching/`、`app/calibration/`、`app/integrations/` 和 `app/tasks/` 属于架构计划，当前仓库尚无这些实现目录。
 
 ## 尚未实现
 

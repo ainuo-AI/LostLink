@@ -1,6 +1,8 @@
 # 测试策略
 
-> 状态：前端已配置 Vitest；后端已配置 pytest，并覆盖健康检查、OpenAPI、物品列表接口和 MySQL Repository。浏览器端自动化测试尚未配置。
+> 状态：前端 Vitest 有 5 个测试文件、14 个测试；后端 pytest 覆盖健康检查、OpenAPI、物品列表接口和可选 MySQL Repository。浏览器端自动化测试尚未配置。
+>
+> 前端最后验证：2026-10-02；后端测试状态以最近一次后端验证记录为准。
 
 ## 测试目标
 
@@ -14,7 +16,7 @@
 | --- | --- | --- |
 | 后端单元测试 | Service、匹配规则、校准规则和工具函数 | `backend/tests/` |
 | 后端集成测试 | API、权限、Repository、数据库 migration | `backend/tests/` |
-| 前端单元测试 | 组件、Store、格式化和校验逻辑 | `frontend/tests/` |
+| 前端单元测试 | 接口转换、举报存储、表单校验和通知状态 | `frontend/src/**/*.test.ts` |
 | 契约测试 | 请求、响应、状态码和错误格式与 OpenAPI 一致 | 前后端测试目录 |
 | 端到端测试 | 发布、搜索、匹配反馈和关闭信息等核心流程 | 框架确定后指定目录 |
 
@@ -22,13 +24,13 @@
 
 在 `frontend/` 目录执行：
 
-```bash
-npm test
-npm run type-check
-npm run build
+```powershell
+npm.cmd test
+npm.cmd run type-check
+npm.cmd run build
 ```
 
-Vitest 当前覆盖查询参数序列化、FastAPI 错误转换、接口数据到页面模型的转换和时间显示格式。类型检查与生产构建用于发现组件类型和打包问题，但不能代替浏览器端端到端测试。
+Vitest 当前覆盖查询参数序列化、FastAPI 错误转换、接口数据到页面模型的转换、时间显示、本地举报存储、失物与拾物草稿隔离、表单与图片规则、联系方式脱敏，以及匹配通知的已读和处理状态。2026-10-02 的执行结果为 14/14 通过，类型检查和生产构建通过。类型检查与构建不能代替浏览器端端到端测试；图片实际选择与预览尚未纳入自动化测试。
 
 ## 当前后端测试
 
@@ -38,7 +40,7 @@ Vitest 当前覆盖查询参数序列化、FastAPI 错误转换、接口数据�
 uv run pytest
 ```
 
-默认测试使用 FastAPI 测试客户端和内存演示仓储，不连接个人数据库，也不会调用外部服务。设置 `TEST_DATABASE_URL` 后执行 `uv run pytest -m mysql`，可以针对已迁移并写入演示数据的隔离 MySQL 验证正式 Repository。
+默认测试使用 FastAPI 测试客户端和内存演示仓储，不连接个人数据库，也不会调用外部服务。设置 `TEST_DATABASE_URL` 后执行 `uv run pytest -m mysql`，可以针对已迁移并写入演示数据的隔离 MySQL 验证正式 Repository。本次文档更新未重新运行后端测试，不把以前的联调记录写成当日验证结果。
 
 Alembic migration 还需要在一次性数据库中验证 `upgrade head → downgrade base → upgrade head`。不得使用包含有效数据的共享数据库执行破坏性回滚测试。
 
