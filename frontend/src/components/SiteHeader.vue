@@ -2,8 +2,8 @@
 /**
  * 全站顶部导航组件
  *
- * RouterLink 负责真实页面跳转，activeLabel 根据当前路由计算高亮项；
- * 桌面端和手机端复用同一份 navItems，避免两个导航入口不一致。
+ * RouterLink 负责真实页面跳转，activeLabel 根据当前路由计算高亮项。
+ * 六个入口同时覆盖现有业务页和同学新增的普通用户入口。
  */
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
@@ -15,6 +15,8 @@ const activeLabel = computed(() => {
   if (route.name === 'publish-lost') return '发布失物'
   if (route.name === 'register-found') return '登记拾物'
   if (route.name === 'notifications' || route.name === 'match-detail') return '匹配通知'
+  if (route.name === 'my' || route.name === 'my-preview') return '我的'
+  if (route.name === 'login' || route.name === 'register') return '登录'
   if (route.name === 'home') return '首页'
   return ''
 })
@@ -31,6 +33,8 @@ const navItems = [
   { label: '发布失物', name: 'publish-lost' },
   { label: '登记拾物', name: 'register-found' },
   { label: '匹配通知', name: 'notifications' },
+  { label: '我的', name: 'my' },
+  { label: '登录', name: 'login' },
 ] as const
 </script>
 
@@ -56,14 +60,9 @@ const navItems = [
         >
           {{ item.label }}
         </RouterLink>
-        <button class="nav-item" type="button" @click="$emit('navigate', '我的')">我的</button>
       </nav>
-
-      <button class="mobile-profile" type="button" aria-label="打开我的页面" @click="$emit('navigate', '我的')">
-        <span aria-hidden="true">👤</span>
-      </button>
     </div>
-    <!-- 手机端保留四个真实入口，避免桌面导航隐藏后功能不可达。 -->
+    <!-- 手机端同样保留六个入口，普通用户和新增业务都可直接访问。 -->
     <nav class="mobile-nav" aria-label="手机主导航">
       <RouterLink
         v-for="item in navItems"

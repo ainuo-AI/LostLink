@@ -25,7 +25,6 @@ const campus = ref<'all' | Campus>('all')
 const area = ref<'all' | CampusArea>('all')
 const timeRange = ref('30')
 const filtersOpen = ref(false)
-const notice = ref('')
 
 // 类别属于当前产品枚举；不从筛选后的结果临时推导，避免选项随查询结果消失。
 const categories = ['箱包', '卡证', '数码', '文具', '服饰', '书籍', '其他']
@@ -146,24 +145,17 @@ function openItem(item: LostFoundItem) {
   void router.push({ name: 'item-detail', params: { id: item.id } })
 }
 
-// 已实现的主导航由 SiteHeader 的 RouterLink 处理；这里只提示尚未实现的“我的”。
-function navigate(label: string) {
-  notice.value = `「${label}」将在后续迭代中开放`
-  window.setTimeout(() => {
-    notice.value = ''
-  }, 2200)
-}
 </script>
 
 <template>
   <div class="app-shell">
-    <SiteHeader active-nav="首页" @navigate="navigate" />
+    <SiteHeader active-nav="首页" />
 
     <main>
       <section class="intro-section" aria-labelledby="page-title">
         <div>
           <p class="eyebrow">CAMPUS LOST &amp; FOUND</p>
-          <h1 id="page-title">找回遗失，连接线索</h1>
+          <h1 id="page-title" tabindex="-1">找回遗失，连接线索</h1>
           <p class="intro-copy">搜索校园失物与拾物记录，让每一件物品都有回家的可能。</p>
         </div>
         <div class="intro-stat" aria-label="当前有效线索">
@@ -302,8 +294,5 @@ function navigate(label: string) {
       </div>
     </main>
 
-    <transition name="toast">
-      <div v-if="notice" class="toast" role="status">{{ notice }}</div>
-    </transition>
   </div>
 </template>

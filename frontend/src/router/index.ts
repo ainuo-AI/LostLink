@@ -6,6 +6,7 @@
 
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import { readAdminSection } from './admin'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -47,6 +48,47 @@ const router = createRouter({
       name: 'match-detail',
       // :id 让某一条匹配详情可以被刷新、收藏并通过前进/后退恢复。
       component: () => import('../views/MatchDetailView.vue'),
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue'),
+      // query 用于说明用户为何被引导到登录页，不伪造登录状态。
+      props: route => ({
+        profileRequested: route.query.requested === 'profile',
+        adminRequested: route.query.requested === 'admin',
+      }),
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue'),
+    },
+    {
+      path: '/my',
+      name: 'my',
+      // 当前没有认证接口，真实个人页入口必须先进入登录说明页。
+      redirect: { name: 'login', query: { requested: 'profile' } },
+    },
+    {
+      path: '/admin/:section?',
+      name: 'admin',
+      // 管理端同样不根据前端演示数据授予权限。
+      redirect: { name: 'login', query: { requested: 'admin' } },
+    },
+    {
+      path: '/my-preview',
+      name: 'my-preview',
+      component: () => import('../views/MyView.vue'),
+      // 开发预览不会进入生产构建中的业务入口。
+      beforeEnter: () => import.meta.env.DEV ? true : { name: 'login' },
+    },
+    {
+      path: '/admin-preview/:section?',
+      name: 'admin-preview',
+      component: () => import('../views/admin/AdminConsole.vue'),
+      beforeEnter: () => import.meta.env.DEV ? true : { name: 'login' },
+      props: route => ({ section: readAdminSection(route.params.section) }),
     },
     {
       path: '/:pathMatch(.*)*',

@@ -23,13 +23,13 @@
 }
 
 html {
-  min-width: 320px;
+  min-width: min(320px, 100%);
   background: #f2f7fa;
 }
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: min(320px, 100%);
   min-height: 100vh;
 }
 
@@ -1462,9 +1462,9 @@ h1 {
 .rejection-fields { display: grid; gap: 8px; max-width: 550px; margin-top: 20px; }
 .rejection-fields label:not(:first-child) { margin-top: 12px; }
 
-/* 平板和手机显示四项主导航，避免桌面导航隐藏后业务入口不可达。 */
+/* 平板和手机将六项导航排成两行，避免窄屏文字拥挤或横向溢出。 */
 @media (max-width: 820px) {
-  .mobile-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100% - 32px, 680px); margin: 0 auto; }
+  .mobile-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100% - 32px, 680px); margin: 0 auto; }
   .mobile-nav a { min-width: 0; padding: 12px 3px; color: #d4e3ee; text-align: center; font-size: 0.82rem; white-space: nowrap; }
   .mobile-nav a.active { color: white; border-bottom: 3px solid var(--mint); font-weight: 800; }
   .entry-main, .notification-main, .match-main { width: min(100% - 32px, 680px); }
