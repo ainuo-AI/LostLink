@@ -1,5 +1,5 @@
 /**
- * 举报模块的纯前端演示类型
+ * 举报模块的前后端接口类型
  *
  * 类型文件只描述数据形状，不负责校验、界面或存储，供页面和 store 共同引用。
  */
@@ -21,7 +21,7 @@ export interface ReportCreate {
   description: string
 }
 
-/** 浏览器本地保存的举报记录。 */
+/** 服务端创建后返回的举报记录摘要。 */
 export interface LocalReport {
   id: number
   item_id: number

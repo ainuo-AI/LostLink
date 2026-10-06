@@ -3,14 +3,16 @@
  * 全站顶部导航组件
  *
  * RouterLink 负责真实页面跳转，activeLabel 根据当前路由计算高亮项。
- * 六个入口同时覆盖现有业务页和同学新增的普通用户入口。
+ * 导航入口同时覆盖现有业务页和普通用户入口；登录后隐藏重复的登录链接。
  */
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuth } from '../stores/auth'
 
 // activeNav 保持兼容旧页面；实际高亮以当前 URL 为准，刷新和后退也会正确显示。
 defineProps<{ activeNav?: string }>()
 const route = useRoute()
+const { user } = useAuth()
 const activeLabel = computed(() => {
   if (route.name === 'publish-lost') return '发布失物'
   if (route.name === 'register-found') return '登记拾物'
@@ -28,14 +30,14 @@ defineEmits<{
 }>()
 
 // 导航数据统一放在数组中，避免在模板里重复写按钮。
-const navItems = [
+const navItems = computed(() => [
   { label: '首页', name: 'home' },
   { label: '发布失物', name: 'publish-lost' },
   { label: '登记拾物', name: 'register-found' },
   { label: '匹配通知', name: 'notifications' },
   { label: '我的', name: 'my' },
-  { label: '登录', name: 'login' },
-] as const
+  ...(!user.value ? [{ label: '登录', name: 'login' }] : []),
+] as const)
 </script>
 
 <template>
@@ -62,7 +64,7 @@ const navItems = [
         </RouterLink>
       </nav>
     </div>
-    <!-- 手机端同样保留六个入口，普通用户和新增业务都可直接访问。 -->
+    <!-- 手机端复用同一导航数据，保证登录前后入口与桌面端一致。 -->
     <nav class="mobile-nav" aria-label="手机主导航">
       <RouterLink
         v-for="item in navItems"

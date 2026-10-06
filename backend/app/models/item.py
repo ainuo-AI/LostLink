@@ -5,7 +5,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import BigInteger, CheckConstraint, Index, String, Text, func, text
+from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, String, Text, func, text
 from sqlalchemy.dialects.mysql import DATETIME
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -28,6 +28,10 @@ class Item(Base):
             "OR (campus = '宁河校区' AND area IS NULL)",
             name="ck_items_campus_area",
         ),
+        CheckConstraint(
+            "storage_method IS NULL OR storage_method IN ('self', 'office')",
+            name="ck_items_storage_method",
+        ),
         Index("ix_items_status_occurred_id", "status", "occurred_at", "id"),
         Index("ix_items_type", "type"),
         Index("ix_items_category", "category"),
@@ -36,6 +40,13 @@ class Item(Base):
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    # 历史演示记录允许没有发布者；后续写入接口必须绑定当前登录用户。
+    owner_id: Mapped[int | None] = mapped_column(
+        BigInteger,
+        ForeignKey("users.id", name="fk_items_owner_id_users", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     type: Mapped[str] = mapped_column(String(16), nullable=False)
     category: Mapped[str] = mapped_column(String(50), nullable=False)
     title: Mapped[str] = mapped_column(String(120), nullable=False)
@@ -48,6 +59,15 @@ class Item(Base):
     occurred_at: Mapped[datetime] = mapped_column(DATETIME(fsp=6), nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="active")
     contact_hint: Mapped[str] = mapped_column(String(255), nullable=False)
+    # 完整联系方式仅供发布者管理记录使用，不进入公开 ItemRead Schema。
+    contact: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    contact_note: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # 下列字段只适用于 found；历史数据和 lost 记录保持为空。
+    storage_method: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    storage_location: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    contact_window: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    closure_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    closed_at: Mapped[datetime | None] = mapped_column(DATETIME(fsp=6), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DATETIME(fsp=6),
         nullable=False,

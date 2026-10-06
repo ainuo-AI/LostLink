@@ -1,8 +1,8 @@
 # 前端架构
 
-> 状态：真实只读首页、Vue Router 页面导航、跨页面物品缓存及独立本地演示服务已实现；Layout 目录仍未承担业务。
+> 状态：查询、认证、图片发布、举报、匹配和管理控制台均已接入真实接口；Vue Router 负责会话和管理员入口保护。
 >
-> 最后核对：2026-10-02
+> 最后核对：2026-10-06
 
 本文记录前端模块边界和依赖原则。安装、运行和检查命令见 [frontend/README.md](../../frontend/README.md)，页面和交互状态见 [设计资料](../design/README.md)。
 
@@ -17,34 +17,36 @@ App.vue
 src/router/index.ts
     ├─ HomeView.vue → api/items.ts → api/client.ts → GET /api/v1/items
     ├─ ItemDetailView.vue → stores/itemNavigation.ts → 现有列表接口
-    ├─ ReportSubmitView.vue → stores/reports.ts → localStorage
+    ├─ ReportSubmitView.vue → stores/reports.ts → 举报 API
+    ├─ LoginView.vue / RegisterView.vue → stores/auth.ts → api/auth.ts
     ├─ PublishLostView.vue / RegisterFoundView.vue
-    │    └─ ItemEntryForm.vue → services/localItems.ts / imageStore.ts
-    └─ NotificationsView.vue / MatchDetailView.vue
-         └─ services/matches.ts → localStorage
+    │    └─ ItemEntryForm.vue → api/items.ts + api/media.ts + 本地草稿
+    ├─ MyView.vue → api/items.ts → 个人查询、编辑和状态更新
+    ├─ NotificationsView.vue / MatchDetailView.vue → services/matches.ts → 匹配 API
+    └─ AdminConsole.vue → api/admin.ts → 管理 API
 ```
 
-`HomeView.vue` 持有筛选、分页、加载和错误状态，通过 `api/items.ts` 请求后端并将 API 数据转换为页面模型。过期请求会通过 `AbortController` 取消。卡片进入独立详情路由；详情刷新时，`itemNavigation.ts` 可从现有列表接口查找该物品。发布与拾物登记复用 `ItemEntryForm.vue` 和 `ImagePicker.vue`，但草稿按记录类型隔离。通知列表与详情通过独立模拟服务共享状态，页面本身不直接操作存储键。
+`HomeView.vue` 持有筛选、分页、加载和错误状态，通过 `api/items.ts` 请求后端并将 API 数据转换为页面模型。认证 Store 只保存安全用户摘要和当前标签页会话，并在首次受保护导航时向服务端确认。发布与拾物登记复用 `ItemEntryForm.vue`，草稿按记录类型隔离，提交时上传图片。通知、举报和管理页面都通过统一客户端访问后端。
 
 ## 模块职责
 
 - `views/`：页面级组合和页面状态，不直接散布底层请求细节。
 - `components/`：可复用界面单元，通过明确的 Props 和 Emits 协作。
 - `api/`：统一封装 HTTP 调用、响应转换和通用错误处理。
-- `services/`：前端演示表单校验、记录、图片和通知的本地实现；不能当作后端 API。
-- `stores/`：跨页面物品缓存及本地举报演示状态。
-- `router/`：首页、物品详情、举报、发布和匹配通知的 URL 导航。
-- `layouts/`：预留目录，当前无业务实现。
+- `services/`：表单校验、草稿、图片暂存和匹配 API 数据转换。
+- `stores/`：认证会话、跨页面物品缓存及举报 API 适配。
+- `router/`：URL 导航、受保护页面会话确认和管理员入口控制。
+- `layouts/`：认证和管理控制台使用的页面布局。
 - `types/`：前端共享类型；API 类型以后优先从 OpenAPI 生成。
 - `styles/`：全局设计变量和跨组件基础样式。
 
 ## 数据流原则
 
-1. 真实后端数据只通过 `api/` 获取；首页查询不与本地演示记录合并。
-2. `api/` 把服务端响应转换为前端展示类型；本地演示数据使用独立 `demo-` 标识和类型。
-3. 演示服务以 Promise 接口提供存取，UI 负责加载、校验、错误和成功状态；图片二进制存于 IndexedDB，不放入 `localStorage`。
+1. 真实后端数据只通过 `api/` 获取；未提交草稿和页面状态不得伪装成服务端记录。
+2. `api/` 把服务端响应转换为前端展示类型；认证请求由通用客户端统一附加 Bearer 会话。
+3. 草稿以 Promise 接口存取；图片发布前暂存在 IndexedDB，提交时上传，不放入 `localStorage`。
 4. 页面状态尽量保持局部，跨页面数据由专门模块管理，组件不直接依赖数据库或外部供应商字段。
-5. 后续接入正式接口时，由后端校验权限和输入；当前前端校验只保证本地演示体验，不是安全边界。
+5. 后端始终校验权限、资源归属、输入和状态转换；前端路由保护与按钮状态不是安全边界。
 
 ## 与后端的边界
 

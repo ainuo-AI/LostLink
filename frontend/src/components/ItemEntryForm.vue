@@ -9,14 +9,19 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import ImagePicker from './ImagePicker.vue'
 import SiteHeader from './SiteHeader.vue'
-import { clearDraft, loadDraft, publishLocalItem, saveDraft } from '../services/localItems'
+import { clearDraft, loadDraft, saveDraft } from '../services/localItems'
 import { emptyDraft, validateDraft } from '../services/itemValidation'
 import { readImage, removeImage } from '../services/imageStore'
-import { ITEM_CATEGORIES, type DraftErrors, type DraftField, type ItemDraft, type LocalItemRecord } from '../types/demo'
-import type { RecordType } from '../types/item'
+import { ITEM_CATEGORIES, type DraftErrors, type DraftField, type ItemDraft } from '../types/demo'
+import type { ApiOwnerItem, Campus, CreateItemPayload, RecordType } from '../types/item'
+import { createItem } from '../api/items'
+import { ApiError } from '../api/client'
+import { deleteUploadedImage, uploadImage } from '../api/media'
+import { useAuth } from '../stores/auth'
 
 const props = defineProps<{ type: RecordType }>()
 const router = useRouter()
+const { clearSession } = useAuth()
 const isFound = computed(() => props.type === 'found')
 const draft = reactive<ItemDraft>(emptyDraft())
 const errors = reactive<DraftErrors>({})
@@ -24,7 +29,7 @@ const loading = ref(true)
 const submitting = ref(false)
 const formError = ref('')
 const storageWarning = ref('')
-const success = ref<LocalItemRecord | null>(null)
+const success = ref<ApiOwnerItem | null>(null)
 let hydrated = false
 let suppressSave = false
 
@@ -89,7 +94,7 @@ async function focusFirstError() {
 }
 
 /**
- * 提交流程：字段校验 → 图片可读性检查 → 写入本地演示记录 → 清空草稿。
+ * 提交流程：字段校验 → 上传暂存图片 → 调用发布接口关联图片 → 清空本地草稿。
  * 任一步失败都会保留用户已填写内容，并显示可重试的错误信息。
  */
 async function submit() {
@@ -97,9 +102,14 @@ async function submit() {
   Object.keys(errors).forEach((key) => delete errors[key as DraftField])
   Object.assign(errors, validateDraft(draft, props.type))
   if (Object.keys(errors).length) { await focusFirstError(); return }
+  const localImages: Array<{ id: string; blob: Blob }> = []
   try {
     // 草稿恢复后再次核对 IndexedDB；图片丢失或不可读时不能假装提交成功。
-    for (const id of draft.imageIds) if (!await readImage(id)) throw new Error('有图片无法读取，请移除后重新选择。')
+    for (const id of draft.imageIds) {
+      const blob = await readImage(id)
+      if (!blob) throw new Error('有图片无法读取，请移除后重新选择。')
+      localImages.push({ id, blob })
+    }
   } catch (error) {
     setError('imageIds', error instanceof Error ? error.message : '图片读取失败。')
     await focusFirstError()
@@ -107,18 +117,52 @@ async function submit() {
   }
   formError.value = ''
   submitting.value = true
+  const uploadedIds: string[] = []
   try {
-    // 模拟请求延迟，以展示提交中状态；真正成功以本地写入完成为准。
-    await new Promise((resolve) => window.setTimeout(resolve, 320))
-    const record = await publishLocalItem(props.type, draft)
+    for (const [index, image] of localImages.entries()) {
+      const uploaded = await uploadImage(
+        image.blob,
+        `item-${index + 1}.${image.blob.type.split('/')[1] || 'jpg'}`,
+      )
+      uploadedIds.push(uploaded.id)
+    }
+    const payload: CreateItemPayload = {
+      type: props.type,
+      category: draft.category,
+      title: draft.title.trim(),
+      description: draft.description.trim(),
+      location: draft.location.trim(),
+      // 前面的 validateDraft 已确认该值是受支持的校区枚举。
+      campus: draft.campus as Campus,
+      area: draft.area || null,
+      // datetime-local 按浏览器本地时区解析，再转为后端要求的带时区 ISO 时间。
+      occurred_at: new Date(draft.occurredAt).toISOString(),
+      contact: draft.contact.trim(),
+      contact_note: draft.contactNote.trim() || null,
+      storage_method: isFound.value ? draft.storageMethod || null : null,
+      storage_location: isFound.value ? draft.storageLocation.trim() || null : null,
+      contact_window: isFound.value ? draft.contactWindow.trim() || null : null,
+      image_ids: uploadedIds,
+    }
+    const record = await createItem(payload)
     success.value = record
     suppressSave = true
+    await Promise.allSettled(localImages.map(image => removeImage(image.id)))
     Object.assign(draft, emptyDraft())
     try { await clearDraft(props.type) } catch { storageWarning.value = '记录已保存，但旧草稿未能清除。' }
     await nextTick()
     document.getElementById('entry-success-title')?.focus()
   } catch (error) {
-    formError.value = error instanceof Error ? error.message : '提交失败，请重试。'
+    // 物品未创建时，回收服务端临时上传；本地草稿和图片保留供用户重试。
+    await Promise.allSettled(uploadedIds.map(deleteUploadedImage))
+    if (error instanceof ApiError && error.status === 401) {
+      clearSession()
+      await router.replace({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
+      return
+    }
+    formError.value = error instanceof ApiError
+      ? error.message
+      : '无法连接发布服务，请确认后端已启动后重试。'
   } finally {
     submitting.value = false
     suppressSave = false
@@ -147,18 +191,17 @@ async function reset() {
 function continueEntry() { success.value = null }
 function imageError(message: string) { setError('imageIds', message) }
 function updateImages(ids: string[]) { draft.imageIds = ids; delete errors.imageIds }
-function navigate(label: string) { if (label === '我的') window.alert('「我的」将在后续迭代中开放。') }
 </script>
 
 <template>
   <div class="app-shell">
-    <SiteHeader :active-nav="isFound ? '登记拾物' : '发布失物'" @navigate="navigate" />
+      <SiteHeader :active-nav="isFound ? '登记拾物' : '发布失物'" />
     <main class="entry-main">
       <div class="entry-heading">
         <p class="section-kicker">{{ isFound ? 'FOUND ITEM' : 'LOST ITEM' }}</p>
         <h1>{{ isFound ? '登记拾物' : '发布失物' }}</h1>
         <p>{{ isFound ? '记录拾获信息，帮助失主核验线索。' : '详细描述遗失物品，让其他同学更容易发现线索。' }}</p>
-        <p class="demo-notice">本地演示，尚未同步服务器。所选图片仅保存在当前浏览器。</p>
+        <p class="demo-notice">提交后将写入服务器；所选图片会在发布时上传并关联到该记录。</p>
       </div>
 
       <div v-if="loading" class="page-state" role="status"><span class="loading-spinner" aria-hidden="true"></span><p>正在读取本地草稿…</p></div>
@@ -166,9 +209,9 @@ function navigate(label: string) { if (label === '我的') window.alert('「我�
       <section v-else-if="success" class="entry-success" aria-labelledby="entry-success-title">
         <span class="success-mark" aria-hidden="true">✓</span>
         <h2 id="entry-success-title" tabindex="-1">{{ isFound ? '拾物登记成功' : '失物发布成功' }}</h2>
-        <p>本地演示记录编号：<strong>{{ success.id }}</strong></p>
+        <p>服务器记录编号：<strong>{{ success.id }}</strong></p>
         <p>{{ success.title }} · {{ success.campus }}{{ success.area ? ` ${success.area}` : '' }} · {{ success.location }}</p>
-        <p>状态：待匹配。本次记录尚未同步服务器，也未发送真实通知。</p>
+        <p>状态：进行中。你可以在“我的”页面查看和管理这条记录。</p>
         <div class="entry-actions"><button class="secondary-button" type="button" @click="continueEntry">{{ isFound ? '继续登记' : '继续发布' }}</button><RouterLink class="primary-button action-link" :to="{ name: 'home' }">返回首页</RouterLink></div>
       </section>
 
@@ -181,7 +224,7 @@ function navigate(label: string) { if (label === '我的') window.alert('「我�
             <div class="entry-field"><label for="entry-title">物品名称 <span>*</span></label><input id="entry-title" v-model="draft.title" maxlength="60" placeholder="例如：黑色双肩包" :aria-invalid="Boolean(errors.title)" :aria-describedby="errors.title ? 'entry-title-error' : undefined" /><p v-if="errors.title" id="entry-title-error" class="field-error" role="alert">{{ errors.title }}</p></div>
             <div class="entry-field"><label for="entry-category">物品类别 <span>*</span></label><select id="entry-category" v-model="draft.category" :aria-invalid="Boolean(errors.category)" :aria-describedby="errors.category ? 'entry-category-error' : undefined"><option value="">请选择类别</option><option v-for="category in ITEM_CATEGORIES" :key="category" :value="category">{{ category }}</option></select><p v-if="errors.category" id="entry-category-error" class="field-error" role="alert">{{ errors.category }}</p></div>
             <div class="entry-field full"><label for="entry-description">特征描述 <span>*</span></label><textarea id="entry-description" v-model="draft.description" rows="5" maxlength="500" placeholder="写明颜色、品牌、外观和独有标记（至少 10 个字）" :aria-invalid="Boolean(errors.description)" :aria-describedby="errors.description ? 'entry-description-error' : undefined"></textarea><p v-if="errors.description" id="entry-description-error" class="field-error" role="alert">{{ errors.description }}</p></div>
-            <div class="entry-field full"><ImagePicker :image-ids="draft.imageIds" @update:image-ids="updateImages" @error="imageError" /><p v-if="errors.imageIds" class="field-error" role="alert">{{ errors.imageIds }}</p></div>
+            <div class="entry-field full"><ImagePicker :image-ids="draft.imageIds" @update:image-ids="updateImages" @error="imageError" /><p class="profile-hint">图片仅供本地预览；服务端上传开放前，提交时必须移除所有图片。</p><p v-if="errors.imageIds" class="field-error" role="alert">{{ errors.imageIds }}</p></div>
           </div>
         </section>
 
@@ -198,7 +241,7 @@ function navigate(label: string) { if (label === '我的') window.alert('「我�
 
         <!-- 拾物模式比失物模式多出保管方式、保管地点和可联系时间。 -->
         <section class="entry-section" aria-labelledby="entry-contact-title">
-          <div class="entry-section-heading"><span>03</span><div><h2 id="entry-contact-title">{{ isFound ? '保管与联系' : '联系方式' }}</h2><p>联系方式只用于本地演示，公开摘要会自动脱敏。</p></div></div>
+          <div class="entry-section-heading"><span>03</span><div><h2 id="entry-contact-title">{{ isFound ? '保管与联系' : '联系方式' }}</h2><p>完整联系方式只在你的管理页面展示，公开页面仅显示脱敏说明。</p></div></div>
           <div class="entry-fields">
             <template v-if="isFound">
               <div class="entry-field"><label for="entry-storageMethod">保管方式 <span>*</span></label><select id="entry-storageMethod" v-model="draft.storageMethod" :aria-invalid="Boolean(errors.storageMethod)"><option value="">请选择方式</option><option value="self">本人暂存</option><option value="office">交至失物招领处</option></select><p v-if="errors.storageMethod" class="field-error" role="alert">{{ errors.storageMethod }}</p></div>

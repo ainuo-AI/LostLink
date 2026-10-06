@@ -2,8 +2,8 @@
 /**
  * 图片选择与预览组件
  *
- * 作用：统一完成图片格式和大小校验、IndexedDB 保存、缩略图展示、
- * 大图预览及删除。父表单只保存图片编号，不直接保存体积较大的二进制内容。
+ * 作用：统一完成图片格式和大小校验、发布前的 IndexedDB 暂存、缩略图展示、
+ * 大图预览及删除。提交表单时父组件会把这些本地图片上传到服务端。
  */
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { readImage, removeImage, saveImage } from '../services/imageStore'
@@ -96,7 +96,7 @@ function restoreFocus() { opener?.focus(); opener = null }
   <!-- 该组件通过 update:imageIds 与父表单双向同步，不直接提交整张表单。 -->
   <div class="image-picker">
     <label for="demo-images">物品图片 <span class="optional">选填</span></label>
-    <p id="image-rules" class="form-help">仅支持 JPG、PNG、WebP；每张不超过 5MB，最多 3 张。图片只保存在本地浏览器。</p>
+    <p id="image-rules" class="form-help">仅支持 JPG、PNG、WebP；每张不超过 5MB，最多 3 张。发布时将安全上传到服务器。</p>
     <input id="demo-images" ref="input" type="file" accept="image/jpeg,image/png,image/webp" multiple :disabled="imageIds.length >= MAX_IMAGES" aria-describedby="image-rules" @change="selectFiles" />
     <div v-if="previews.length" class="image-preview-grid">
       <div v-for="preview in previews" :key="preview.id" class="image-preview">
