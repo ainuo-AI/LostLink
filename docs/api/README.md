@@ -2,9 +2,22 @@
 
 本目录用于存放接口约定、字段说明、错误码和接口变更记录。当前后端由 FastAPI 生成 OpenAPI，运行后可访问 `/openapi.json` 和 `/docs`；仓库尚未配置持续集成导出或校验 OpenAPI，不要把它写成已有自动流程。
 
-当前仅有只读业务接口 `GET /api/v1/items`，另有 `GET /health` 健康检查。接口的可执行定义以 FastAPI 生成的 `/openapi.json` 为准；本文件记录跨端使用约定和示例。前端发布、拾物登记、举报、匹配通知及反馈没有后端接口，它们只调用浏览器本地模拟服务。
+当前已有账号认证、物品与图片、举报、匹配通知、管理审计和校准版本接口。接口的可执行定义以 FastAPI 生成的 `/openapi.json` 为准；本文件记录跨端使用约定和示例，前端已接入这些真实接口。
 
 ## 已实现接口
+
+### 认证与当前用户
+
+| 方法与路径 | 认证 | 说明 |
+| --- | --- | --- |
+| `POST /api/v1/auth/register` | 否 | 创建默认 `role=user`、`status=active`、`campus_verified=false` 的本地账号 |
+| `POST /api/v1/auth/login` | 否 | 验证密码并签发不透明 Bearer 会话令牌 |
+| `POST /api/v1/auth/logout` | Bearer | 吊销当前会话，不影响同一账号的其他会话 |
+| `GET /api/v1/users/me` | Bearer | 读取当前账号、角色、状态和校园验证状态 |
+
+注册账号允许 3～64 位字母、数字及 `._@-`，密码长度为 8～128。登录失败统一返回 `401`、`code=AUTHENTICATION_FAILED`，不会说明账号是否存在；默认连续 5 次失败后锁定登录 15 分钟。缺少、过期或已吊销的令牌返回 `401`、`code=UNAUTHENTICATED`，受限账号返回 `403`、`code=ACCOUNT_RESTRICTED`。
+
+登录成功响应中的 `access_token` 只在该响应中明文出现，客户端后续通过 `Authorization: Bearer <access_token>` 发送。当前前端将会话保存在当前标签页的 `sessionStorage`，刷新时调用 `GET /api/v1/users/me` 重新确认；关闭标签页、主动退出或发现会话过期后清除。正式部署前仍需结合 XSS 风险和会话策略复审该方案。
 
 ### `GET /api/v1/items`
 
@@ -28,7 +41,8 @@
       "area": null,
       "occurred_at": "2026-09-29T08:00:00Z",
       "status": "active",
-      "contact_hint": "请描述蓝牙名称或保护套特征。"
+      "contact_hint": "请描述蓝牙名称或保护套特征。",
+      "image_urls": ["/api/v1/uploads/images/12"]
     }
   ],
   "page": 1,
@@ -38,6 +52,45 @@
 ```
 
 参数校验失败时返回 `422` 和下文规定的统一错误结构。
+
+### 物品详情与管理
+
+| 方法与路径 | 认证 | 说明 |
+| --- | --- | --- |
+| `GET /api/v1/items/{id}` | 否 | 返回任意状态记录的公开字段；不存在时返回 `ITEM_NOT_FOUND` |
+| `POST /api/v1/items` | Bearer | 创建 `active` 记录，`owner_id` 只取当前会话用户 |
+| `GET /api/v1/users/me/items` | Bearer | 查询自己的全部状态记录，支持 `type`、`status`、`page` 和 `page_size` |
+| `PATCH /api/v1/items/{id}` | Bearer | 所有者或管理员编辑 active 记录；禁止修改类型、所有者和状态 |
+| `PATCH /api/v1/items/{id}/status` | Bearer | 执行终态转换并原子写入状态审计 |
+
+发布字段包括类型、类别、标题、描述、校区、区域、地点、带时区发生时间、联系方式和公开联系说明。拾物记录还必须提供 `storage_method=self|office`、保管地点和可联系时间。完整联系方式属于私密字段，只在发布者/管理员视图返回；公开响应仅含 `contact_hint`。
+
+更新接口通过请求字段是否出现区分“不修改”和“显式设为 null”。图片先通过 `POST /api/v1/uploads/images` 上传，再把最多三个 `image_ids` 传给发布或更新接口；公开响应的 `image_urls` 可直接用于展示。
+
+状态规则：
+
+- `lost: active → recovered | closed`
+- `found: active → returned | closed`
+- 当前终态不可恢复或重复提交，非法转换返回 `409`、`code=INVALID_STATUS_TRANSITION`
+- 非所有者修改返回 `403`、`code=FORBIDDEN`
+
+### 图片、举报与匹配通知
+
+| 方法与路径 | 认证 | 说明 |
+| --- | --- | --- |
+| `POST /api/v1/uploads/images` | Bearer | 上传 JPG、PNG 或 WebP；默认最大 5MB |
+| `GET /api/v1/uploads/images/{id}` | 否 | 读取已经关联物品的图片 |
+| `DELETE /api/v1/uploads/images/{id}` | Bearer | 删除自己的未关联临时图片 |
+| `POST /api/v1/items/{id}/reports` | Bearer | 提交举报；禁止自举报和重复待处理举报 |
+| `GET /api/v1/users/me/reports` | Bearer | 查看自己的举报及处理结果 |
+| `GET /api/v1/notifications` | Bearer | 查看匹配通知、状态和未读数量 |
+| `GET /api/v1/matches/{id}` | Bearer | 查看自己的候选详情和评分解释 |
+| `PATCH /api/v1/notifications/{id}/read` | Bearer | 标记通知已读 |
+| `PATCH /api/v1/matches/{id}/feedback` | Bearer | 确认或拒绝待处理候选 |
+
+### 管理端
+
+`/api/v1/admin/*` 全部要求 `role=admin`。主要接口包括概览统计、举报列表与处理、用户查询与状态修改、只读审计日志、校准任务创建以及候选版本的批准、拒绝、启用和回滚。管理写操作必须提供理由，并写入 `admin_audit_logs`。
 
 ## 契约工作流
 
@@ -83,7 +136,7 @@
 - `details` 用于字段校验等结构化信息。
 - `request_id` 用于关联日志，不能包含个人信息。
 
-当前参数校验错误返回 HTTP `422`、`code=VALIDATION_ERROR`，`details` 为字段、消息和类型的数组；数据库异常返回 HTTP `503`、`code=DATABASE_UNAVAILABLE`；未处理异常返回 HTTP `500`、`code=INTERNAL_SERVER_ERROR`。这些状态由当前异常处理器定义，不表示尚未实现的发布或匹配接口已有对应错误契约。
+当前参数校验错误返回 HTTP `422`、`code=VALIDATION_ERROR`，`details` 为字段、消息和类型的数组；业务校验使用对应稳定错误码；数据库异常返回 HTTP `503`、`code=DATABASE_UNAVAILABLE`；未处理异常返回 HTTP `500`、`code=INTERNAL_SERVER_ERROR`。
 
 ## 兼容性
 

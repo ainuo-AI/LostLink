@@ -3,13 +3,17 @@
 import type {
   ApiItem,
   ApiItemListResponse,
+  ApiOwnerItem,
+  ApiOwnerItemListResponse,
   Campus,
   CampusArea,
   ItemStatus,
   LostFoundItem,
   RecordType,
+  CreateItemPayload,
+  UpdateItemPayload,
 } from '../types/item'
-import { requestJson } from './client'
+import { requestJson, resolveApiUrl } from './client'
 
 export interface ItemListQuery {
   keyword?: string
@@ -53,6 +57,61 @@ export async function fetchItems(
   if (query.days) params.set('days', String(query.days))
 
   return requestJson<ApiItemListResponse>(`/api/v1/items?${params.toString()}`, { signal })
+}
+
+const jsonHeaders = { 'Content-Type': 'application/json' }
+
+/** 发布一条真实记录；所有者和初始状态由后端根据当前会话设置。 */
+export function createItem(payload: CreateItemPayload): Promise<ApiOwnerItem> {
+  return requestJson<ApiOwnerItem>('/api/v1/items', {
+    method: 'POST',
+    headers: jsonHeaders,
+    body: JSON.stringify(payload),
+  }, { authenticated: true })
+}
+
+export interface MyItemQuery {
+  type?: RecordType
+  status?: ItemStatus
+  page: number
+  pageSize: number
+}
+
+/** 分页读取当前登录用户自己的记录和管理字段。 */
+export function fetchMyItems(query: MyItemQuery): Promise<ApiOwnerItemListResponse> {
+  const params = new URLSearchParams({
+    page: String(query.page),
+    page_size: String(query.pageSize),
+  })
+  if (query.type) params.set('type', query.type)
+  if (query.status) params.set('status', query.status)
+  return requestJson<ApiOwnerItemListResponse>(
+    `/api/v1/users/me/items?${params.toString()}`,
+    {},
+    { authenticated: true },
+  )
+}
+
+/** 编辑仍处于 active 状态的自有记录。 */
+export function updateItem(itemId: number, payload: UpdateItemPayload): Promise<ApiOwnerItem> {
+  return requestJson<ApiOwnerItem>(`/api/v1/items/${itemId}`, {
+    method: 'PATCH',
+    headers: jsonHeaders,
+    body: JSON.stringify(payload),
+  }, { authenticated: true })
+}
+
+/** 将记录变更为与类型匹配的终态并附带可选原因。 */
+export function updateItemStatus(
+  itemId: number,
+  status: ItemStatus,
+  reason?: string,
+): Promise<ApiOwnerItem> {
+  return requestJson<ApiOwnerItem>(`/api/v1/items/${itemId}/status`, {
+    method: 'PATCH',
+    headers: jsonHeaders,
+    body: JSON.stringify({ status, reason: reason?.trim() || null }),
+  }, { authenticated: true })
 }
 
 /** 将带时区的 API 时间转换为适合首页阅读的中文时间。 */
@@ -100,5 +159,6 @@ export function toLostFoundItem(item: ApiItem): LostFoundItem {
     icon: visual.icon,
     color: visual.color,
     contactHint: item.contact_hint,
+    imageUrls: (item.image_urls ?? []).map(resolveApiUrl),
   }
 }

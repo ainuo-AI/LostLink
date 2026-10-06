@@ -1,7 +1,7 @@
 /** 失物与拾物 API 客户端测试。 */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchItems, formatDisplayTime, toLostFoundItem } from './items'
+import { createItem, fetchItems, fetchMyItems, formatDisplayTime, toLostFoundItem, updateItemStatus } from './items'
 import type { ApiItem } from '../types/item'
 
 const apiItem: ApiItem = {
@@ -63,6 +63,33 @@ describe('fetchItems', () => {
       code: 'DATABASE_UNAVAILABLE',
       requestId: 'request-1',
     })
+  })
+})
+
+describe('authenticated item api', () => {
+  it('发布、个人列表和状态更新遵守后端契约', async () => {
+    const ownerItem = { ...apiItem, owner_id: 7, contact: '13800000000' }
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(ownerItem), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ items: [ownerItem], page: 1, page_size: 6, total: 1 })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ...ownerItem, status: 'returned' })))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await createItem({
+      type: 'found', category: '数码', title: '白色无线耳机', description: '白色充电仓，外壳有贴纸。',
+      location: '操场南门', campus: '宁河校区', area: null, occurred_at: '2026-09-30T08:30:00Z',
+      contact: '13800000000', contact_note: null, storage_method: 'self', storage_location: '宿舍值班室',
+      contact_window: '工作日中午', image_ids: [],
+    })
+    await fetchMyItems({ type: 'found', status: 'active', page: 1, pageSize: 6 })
+    await updateItemStatus(3, 'returned', '已经归还失主')
+
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/api/v1/items')
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).owner_id).toBeUndefined()
+    const listUrl = new URL(fetchMock.mock.calls[1][0])
+    expect(listUrl.pathname).toBe('/api/v1/users/me/items')
+    expect(listUrl.searchParams.get('status')).toBe('active')
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual({ status: 'returned', reason: '已经归还失主' })
   })
 })
 

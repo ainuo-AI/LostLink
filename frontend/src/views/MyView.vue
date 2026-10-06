@@ -1,56 +1,163 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+/** 当前用户资料与物品管理页，所有数据均来自受保护的后端接口。 */
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import SiteHeader from '../components/SiteHeader.vue'
 import ItemCard from '../components/ItemCard.vue'
+import { ApiError } from '../api/client'
+import { fetchMyItems, toLostFoundItem, updateItem, updateItemStatus } from '../api/items'
+import { ITEM_CATEGORIES } from '../types/demo'
+import type { ApiOwnerItem, ItemStatus, RecordType, UpdateItemPayload } from '../types/item'
 import { cacheItemForNavigation } from '../stores/itemNavigation'
-import type { ItemStatus, LostFoundItem, RecordType } from '../types/item'
+import { useAuth } from '../stores/auth'
 
 const PAGE_SIZE = 6
 const router = useRouter()
+const auth = useAuth()
 const selectedType = ref<RecordType>('lost')
 const status = ref<'all' | ItemStatus>('all')
 const currentPage = ref(1)
-const demoItems = ref<LostFoundItem[]>([])
-const showDemoRecords = ref(false)
+const records = ref<ApiOwnerItem[]>([])
+const total = ref(0)
+const loading = ref(false)
+const pageError = ref('')
+const actionError = ref('')
+const actionId = ref<number | null>(null)
+const editing = ref<ApiOwnerItem | null>(null)
+const editForm = reactive({ title: '', category: '', description: '', location: '', contact: '', contactNote: '' })
 
 const statusLabels: Record<ItemStatus, string> = {
-  active: '进行中',
-  recovered: '已找回',
-  returned: '已归还',
-  closed: '已关闭',
+  active: '进行中', recovered: '已找回', returned: '已归还', closed: '已关闭',
+}
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
+
+function handleRequestError(error: unknown, fallback: string): string {
+  if (error instanceof ApiError && error.status === 401) {
+    auth.clearSession()
+    void router.replace({ name: 'login', query: { redirect: '/my' } })
+    return '登录状态已失效，请重新登录。'
+  }
+  return error instanceof ApiError ? error.message : fallback
 }
 
-// 演示数据仅在开发预览中加载，不能作为当前用户的记录或权限依据。
-onMounted(async () => {
-  if (import.meta.env.DEV) {
-    const { profileDemoItems } = await import('../dev/profileDemo')
-    demoItems.value = profileDemoItems
+/** 根据当前类型、状态和页码加载当前用户自己的记录。 */
+async function loadRecords() {
+  loading.value = true
+  pageError.value = ''
+  try {
+    const response = await fetchMyItems({
+      type: selectedType.value,
+      status: status.value === 'all' ? undefined : status.value,
+      page: currentPage.value,
+      pageSize: PAGE_SIZE,
+    })
+    records.value = response.items
+    total.value = response.total
+  } catch (error) {
+    records.value = []
+    total.value = 0
+    pageError.value = handleRequestError(error, '无法读取个人记录，请确认后端已启动后重试。')
+  } finally {
+    loading.value = false
   }
-})
+}
 
-const filteredDemoItems = computed(() => demoItems.value.filter(item =>
-  item.type === selectedType.value && (status.value === 'all' || item.status === status.value),
-))
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredDemoItems.value.length / PAGE_SIZE)))
-const visibleItems = computed(() => filteredDemoItems.value.slice(
-  (currentPage.value - 1) * PAGE_SIZE,
-  currentPage.value * PAGE_SIZE,
-))
-
-watch([selectedType, status, showDemoRecords], () => {
+watch([selectedType, status], () => {
   currentPage.value = 1
+  void loadRecords()
 })
+
+onMounted(async () => {
+  await auth.restore()
+  await loadRecords()
+})
+
+function openItem(item: ApiOwnerItem) {
+  const displayItem = toLostFoundItem(item)
+  cacheItemForNavigation(displayItem)
+  void router.push({ name: 'item-detail', params: { id: item.id } })
+}
 
 function changePage(nextPage: number) {
-  if (nextPage < 1 || nextPage > totalPages.value) return
+  if (nextPage < 1 || nextPage > totalPages.value || loading.value) return
   currentPage.value = nextPage
+  void loadRecords()
 }
 
-/** 个人页演示记录沿用独立详情页，不再维护第二套详情弹窗。 */
-function openItem(item: LostFoundItem) {
-  cacheItemForNavigation(item)
-  void router.push({ name: 'item-detail', params: { id: item.id } })
+/** 打开轻量编辑区；只提交用户实际可修改的常用字段。 */
+function startEdit(item: ApiOwnerItem) {
+  editing.value = item
+  Object.assign(editForm, {
+    title: item.title,
+    category: item.category,
+    description: item.description,
+    location: item.location,
+    contact: item.contact,
+    contactNote: item.contact_note ?? '',
+  })
+  actionError.value = ''
+}
+
+async function saveEdit() {
+  if (!editing.value || actionId.value !== null) return
+  if (editForm.title.trim().length < 2 || editForm.description.trim().length < 10 || editForm.location.trim().length < 2) {
+    actionError.value = '请检查名称、描述和地点的最小长度。'
+    return
+  }
+  const payload: UpdateItemPayload = {
+    title: editForm.title.trim(),
+    category: editForm.category,
+    description: editForm.description.trim(),
+    location: editForm.location.trim(),
+    contact: editForm.contact.trim(),
+    contact_note: editForm.contactNote.trim() || null,
+  }
+  actionId.value = editing.value.id
+  actionError.value = ''
+  try {
+    const updated = await updateItem(editing.value.id, payload)
+    const index = records.value.findIndex((item) => item.id === updated.id)
+    if (index >= 0) records.value[index] = updated
+    editing.value = null
+  } catch (error) {
+    actionError.value = handleRequestError(error, '保存失败，请稍后重试。')
+  } finally {
+    actionId.value = null
+  }
+}
+
+/** 终态变更先由用户确认，再交由后端执行类型和状态转换校验。 */
+async function finishItem(item: ApiOwnerItem, nextStatus: ItemStatus) {
+  if (actionId.value !== null) return
+  const label = statusLabels[nextStatus]
+  if (!window.confirm(`确定将“${item.title}”标记为${label}吗？该操作完成后不能继续编辑。`)) return
+  const reasonInput = window.prompt('可填写处理说明（选填，最多 255 个字）：', '')
+  if (reasonInput === null) return
+  const reason = reasonInput || undefined
+  if (reason && reason.length > 255) {
+    actionError.value = '处理说明不能超过 255 个字。'
+    return
+  }
+  actionId.value = item.id
+  actionError.value = ''
+  try {
+    await updateItemStatus(item.id, nextStatus, reason)
+    await loadRecords()
+  } catch (error) {
+    actionError.value = handleRequestError(error, '状态更新失败，请稍后重试。')
+  } finally {
+    actionId.value = null
+  }
+}
+
+async function logout() {
+  actionError.value = ''
+  try {
+    await auth.logout()
+    await router.replace({ name: 'home' })
+  } catch (error) {
+    actionError.value = handleRequestError(error, '退出失败，请重试。')
+  }
 }
 </script>
 
@@ -59,220 +166,87 @@ function openItem(item: LostFoundItem) {
     <SiteHeader active-nav="我的" />
     <main class="profile-main">
       <section class="intro-section" aria-labelledby="profile-title">
-        <div>
-          <p class="eyebrow">MY LOSTLINK</p>
-          <h1 id="profile-title" tabindex="-1">我的</h1>
-          <p class="intro-copy">集中查看你的失物与拾物记录。</p>
-        </div>
+        <div><p class="eyebrow">MY LOSTLINK</p><h1 id="profile-title">我的</h1><p class="intro-copy">查看和管理你发布的失物与拾物记录。</p></div>
       </section>
-
-      <aside class="profile-preview-note" aria-label="开发预览说明">
-        <strong>开发预览 · 相关服务暂未接入</strong>
-        <p>此页面仅预览布局和交互，不代表登录成功。用户信息与个人记录尚不可用。</p>
-        <RouterLink :to="{ name: 'login' }">返回登录</RouterLink>
-      </aside>
 
       <section class="profile-summary" aria-labelledby="profile-summary-title">
         <div>
           <p class="section-kicker">个人信息</p>
-          <h2 id="profile-summary-title">用户信息摘要</h2>
-          <p>个人信息服务暂未接入，无法展示账号、显示名称或校园身份。</p>
-          <p class="profile-hint">校园身份核验状态需由服务端提供。</p>
+          <h2 id="profile-summary-title">{{ auth.user.value?.display_name || auth.user.value?.account }}</h2>
+          <p>账号：{{ auth.user.value?.account }} · 角色：{{ auth.user.value?.role === 'admin' ? '管理员' : '普通用户' }}</p>
+          <p class="profile-hint">校园身份：{{ auth.user.value?.campus_verified ? '已验证' : '尚未验证' }}</p>
         </div>
-        <div class="profile-logout">
-          <button class="secondary-button" type="button" disabled aria-describedby="logout-note">退出登录</button>
-          <p id="logout-note" class="profile-hint">退出登录服务暂未接入</p>
-        </div>
+        <button class="secondary-button" type="button" @click="logout">退出登录</button>
       </section>
 
       <section class="profile-records" aria-labelledby="profile-records-title">
         <div class="results-header">
-          <div>
-            <p class="section-kicker">个人记录</p>
-            <h2 id="profile-records-title">我的物品记录</h2>
-          </div>
+          <div><p class="section-kicker">个人记录</p><h2 id="profile-records-title">我的物品记录</h2></div>
           <div class="type-tabs" role="group" aria-label="我的记录类型">
-            <button type="button" :class="{ active: selectedType === 'lost' }" :aria-pressed="selectedType === 'lost'" @click="selectedType = 'lost'">我的失物</button>
-            <button type="button" :class="{ active: selectedType === 'found' }" :aria-pressed="selectedType === 'found'" @click="selectedType = 'found'">我的拾物</button>
+            <button type="button" :class="{ active: selectedType === 'lost' }" @click="selectedType = 'lost'">我的失物</button>
+            <button type="button" :class="{ active: selectedType === 'found' }" @click="selectedType = 'found'">我的拾物</button>
           </div>
         </div>
-
         <div class="profile-controls">
-          <div class="filter-group">
-            <label for="my-status">记录状态</label>
-            <select id="my-status" v-model="status">
-              <option value="all">全部状态</option>
-              <option v-for="(label, value) in statusLabels" :key="value" :value="value">{{ label }}</option>
-            </select>
-          </div>
-          <button class="secondary-button" type="button" :disabled="!demoItems.length" :aria-pressed="showDemoRecords" @click="showDemoRecords = !showDemoRecords">
-            {{ showDemoRecords ? '收起演示记录' : '查看演示记录（非个人数据）' }}
-          </button>
+          <div class="filter-group"><label for="my-status">记录状态</label><select id="my-status" v-model="status"><option value="all">全部状态</option><option v-for="(label, value) in statusLabels" :key="value" :value="value">{{ label }}</option></select></div>
+          <RouterLink class="primary-button profile-publish-link" :to="{ name: selectedType === 'lost' ? 'publish-lost' : 'register-found' }">{{ selectedType === 'lost' ? '发布失物' : '登记拾物' }}</RouterLink>
         </div>
 
-        <p class="profile-hint">记录管理服务与编辑表单暂未接入，编辑、关闭和归还操作暂不可用。</p>
-
-        <template v-if="showDemoRecords">
-          <p class="profile-demo-note" role="status">开发演示：以下为虚构物品，仅用于预览，非个人数据。筛选后共 {{ filteredDemoItems.length }} 条演示记录。</p>
-          <div v-if="visibleItems.length" class="item-grid">
-            <div v-for="item in visibleItems" :key="item.id" class="profile-record">
-              <ItemCard :item="item" @open="openItem" />
-              <p class="profile-record-status">状态：{{ statusLabels[item.status] }}</p>
+        <p v-if="pageError || actionError" class="form-alert" role="alert">{{ pageError || actionError }}</p>
+        <div v-if="loading" class="page-state" role="status"><span class="loading-spinner" aria-hidden="true"></span><p>正在加载个人记录…</p></div>
+        <div v-else-if="records.length" class="item-grid">
+          <article v-for="item in records" :key="item.id" class="profile-record">
+            <ItemCard :item="toLostFoundItem(item)" @open="openItem(item)" />
+            <p class="profile-record-status">状态：{{ statusLabels[item.status] }}</p>
+            <div v-if="item.status === 'active'" class="record-actions">
+              <button class="secondary-button" type="button" :disabled="actionId === item.id" @click="startEdit(item)">编辑</button>
+              <button class="secondary-button" type="button" :disabled="actionId === item.id" @click="finishItem(item, item.type === 'lost' ? 'recovered' : 'returned')">{{ item.type === 'lost' ? '标记找回' : '标记归还' }}</button>
+              <button class="text-button" type="button" :disabled="actionId === item.id" @click="finishItem(item, 'closed')">关闭记录</button>
             </div>
-          </div>
-          <div v-else class="empty-state" role="status">
-            <h3>演示数据中没有符合条件的记录</h3>
-            <p>可切换状态查看其他演示记录。</p>
-            <button class="secondary-button" type="button" @click="status = 'all'">清除状态筛选</button>
-          </div>
-          <nav v-if="totalPages > 1" class="pagination" aria-label="演示记录分页">
-            <button type="button" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">上一页</button>
-            <span aria-live="polite">第 {{ currentPage }} / {{ totalPages }} 页</span>
-            <button type="button" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">下一页</button>
-          </nav>
-        </template>
-        <template v-else>
-          <div class="empty-state profile-unavailable" role="status">
-            <h3>个人记录服务暂未接入</h3>
-            <p>当前无法读取{{ selectedType === 'lost' ? '我的失物' : '我的拾物' }}，也无法确认记录总量。</p>
-            <RouterLink class="secondary-button auth-link-button" :to="{ name: 'login' }">返回登录</RouterLink>
-          </div>
-          <nav class="pagination" aria-label="个人记录分页">
-            <button type="button" disabled>上一页</button>
-            <span>分页服务暂未接入</span>
-            <button type="button" disabled>下一页</button>
-          </nav>
-        </template>
+          </article>
+        </div>
+        <div v-else-if="!pageError" class="empty-state" role="status"><h3>没有符合条件的记录</h3><p>可以切换筛选条件，或者发布一条新记录。</p></div>
+
+        <nav v-if="totalPages > 1" class="pagination" aria-label="个人记录分页"><button type="button" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">上一页</button><span>第 {{ currentPage }} / {{ totalPages }} 页，共 {{ total }} 条</span><button type="button" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">下一页</button></nav>
       </section>
+
+      <div v-if="editing" class="edit-overlay" role="presentation" @click.self="editing = null">
+        <section class="edit-dialog" role="dialog" aria-modal="true" aria-labelledby="edit-title">
+          <h2 id="edit-title">编辑记录</h2>
+          <div class="edit-fields">
+            <label>名称<input v-model="editForm.title" maxlength="60" /></label>
+            <label>类别<select v-model="editForm.category"><option v-for="category in ITEM_CATEGORIES" :key="category">{{ category }}</option></select></label>
+            <label class="full">特征描述<textarea v-model="editForm.description" rows="4" maxlength="500"></textarea></label>
+            <label>地点<input v-model="editForm.location" maxlength="100" /></label>
+            <label>联系方式<input v-model="editForm.contact" /></label>
+            <label class="full">联系说明<textarea v-model="editForm.contactNote" rows="2" maxlength="200"></textarea></label>
+          </div>
+          <p v-if="actionError" class="form-alert" role="alert">{{ actionError }}</p>
+          <div class="record-actions"><button class="primary-button" type="button" :disabled="actionId !== null" @click="saveEdit">保存</button><button class="secondary-button" type="button" :disabled="actionId !== null" @click="editing = null">取消</button></div>
+        </section>
+      </div>
     </main>
   </div>
 </template>
 
 <style scoped>
-.profile-preview-note {
-  margin: 28px 0;
-  padding: 20px 24px;
-  background: var(--sky);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  color: var(--blue-dark);
-  line-height: 1.7;
-}
-
-.profile-preview-note p {
-  margin: 6px 0 10px;
-}
-
-.profile-preview-note a {
-  color: var(--blue);
-  font-weight: 700;
-}
-
-.profile-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  padding: 28px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-}
-
-.profile-summary h2 {
-  color: var(--navy);
-  font-size: 1.45rem;
-}
-
-.profile-summary p:not(.section-kicker) {
-  margin-bottom: 8px;
-  line-height: 1.7;
-}
-
-.profile-hint {
-  color: var(--muted);
-  font-size: 0.85rem;
-  line-height: 1.7;
-}
-
-.profile-logout {
-  flex-shrink: 0;
-}
-
-.profile-logout p {
-  margin-top: 10px;
-}
-
-.profile-records {
-  margin-top: 36px;
-}
-
-.profile-controls {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-.profile-controls .filter-group {
-  width: 200px;
-  margin: 0;
-}
-
-.profile-demo-note {
-  margin: 20px 0;
-  padding: 12px 16px;
-  color: var(--blue-dark);
-  background: var(--sky);
-  border-radius: 9px;
-  line-height: 1.7;
-}
-
-.profile-record {
-  min-width: 0;
-}
-
-.profile-record-status {
-  margin: 10px 4px 0;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.profile-unavailable {
-  min-height: 240px;
-  padding: 24px;
-}
-
-.profile-main a:focus-visible {
-  outline: 3px solid rgba(49, 145, 202, 0.5);
-  outline-offset: 3px;
-}
-
-@media (max-width: 560px) {
-  .profile-summary {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: 24px 20px;
-  }
-
-  .profile-preview-note {
-    padding: 18px 20px;
-  }
-
-  .profile-controls .filter-group {
-    width: 100%;
-  }
-
-  .profile-controls > button {
-    width: 100%;
-  }
-
-  .profile-records > .pagination {
-    gap: 8px;
-    font-size: 0.75rem;
-  }
-}
+.profile-summary { display:flex; justify-content:space-between; align-items:center; gap:24px; margin:28px 0 36px; padding:28px; background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); }
+.profile-summary h2 { margin:6px 0 10px; color:var(--navy); }
+.profile-summary p { line-height:1.7; }
+.profile-hint { color:var(--muted); font-size:.86rem; }
+.profile-controls { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; margin:20px 0; }
+.profile-controls .filter-group { width:200px; }
+.profile-publish-link { text-decoration:none; }
+.profile-record { padding-bottom:16px; overflow:hidden; background:var(--surface); border:1px solid var(--line); border-radius:14px; }
+.profile-record :deep(.item-card) { border:0; box-shadow:none; }
+.profile-record-status { padding:0 16px 12px; color:var(--muted); font-weight:700; }
+.record-actions { display:flex; flex-wrap:wrap; gap:10px; padding:0 16px; }
+.edit-overlay { position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:20px; background:rgba(8,35,54,.58); }
+.edit-dialog { width:min(700px, 100%); max-height:90vh; overflow:auto; padding:28px; background:var(--surface); border-radius:16px; box-shadow:0 24px 70px rgba(0,0,0,.25); }
+.edit-dialog h2 { margin-bottom:20px; }
+.edit-fields { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:20px; }
+.edit-fields label { display:grid; gap:8px; color:var(--navy); font-weight:700; }
+.edit-fields input, .edit-fields select, .edit-fields textarea { width:100%; padding:11px 12px; border:1px solid #c7dae6; border-radius:8px; font:inherit; }
+.edit-fields .full { grid-column:1 / -1; }
+@media (max-width:640px) { .profile-summary { align-items:flex-start; flex-direction:column; } .edit-fields { grid-template-columns:1fr; } .edit-fields .full { grid-column:auto; } }
 </style>

@@ -62,6 +62,17 @@
   line-height: 1.7;
 }
 
+.auth-success-note {
+  margin-bottom: 24px;
+  padding: 12px 14px;
+  color: #17694f;
+  background: #e9f8f1;
+  border: 1px solid #b9e4d2;
+  border-radius: 9px;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
 .auth-form {
   display: grid;
   gap: 20px;

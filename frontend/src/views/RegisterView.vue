@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { nextTick, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import AuthLayout from '../components/AuthLayout.vue'
+import { registerAccount } from '../api/auth'
+import { ApiError } from '../api/client'
 
 const account = ref('')
 const password = ref('')
@@ -9,6 +12,8 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const errors = reactive({ account: '', password: '', confirmPassword: '' })
 const submissionMessage = ref('')
+const submitting = ref(false)
+const router = useRouter()
 
 function clearError(field: keyof typeof errors) {
   errors[field] = ''
@@ -16,9 +21,10 @@ function clearError(field: keyof typeof errors) {
 }
 
 async function submitRegistration() {
+  if (submitting.value) return
   submissionMessage.value = ''
   errors.account = account.value.trim() ? '' : '请输入校园账号'
-  errors.password = password.value ? '' : '请输入密码'
+  errors.password = !password.value ? '请输入密码' : password.value.length < 8 ? '密码至少需要 8 位' : ''
   errors.confirmPassword = !confirmPassword.value
     ? '请再次输入密码'
     : password.value !== confirmPassword.value ? '两次输入的密码不一致' : ''
@@ -33,15 +39,30 @@ async function submitRegistration() {
     return
   }
 
-  // 注册接口及字段契约尚未提供；不发送密码，也不生成本地账户或成功状态。
-  submissionMessage.value = '注册服务暂未接入，账号尚未创建，请稍后再试。'
+  submitting.value = true
+  try {
+    await registerAccount({ account: account.value.trim(), password: password.value })
+    password.value = ''
+    confirmPassword.value = ''
+    await router.replace({ name: 'login', query: { registered: '1', account: account.value.trim() } })
+  } catch (error) {
+    if (error instanceof ApiError && error.code === 'ACCOUNT_EXISTS') {
+      errors.account = '该校园账号已经注册'
+      await nextTick()
+      document.getElementById('register-account')?.focus()
+    } else {
+      submissionMessage.value = error instanceof ApiError
+        ? error.message
+        : '无法连接注册服务，请确认后端已启动后重试。'
+    }
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
 <template>
   <AuthLayout title="注册账号" description="使用校园账号，开启你的 LostLink 之旅。">
-    <p id="register-service-note" class="auth-service-note">注册服务暂未接入，当前无法创建账号。</p>
-
     <form class="auth-form" novalidate @submit.prevent="submitRegistration">
       <div class="auth-field">
         <label for="register-account">校园账号</label>
@@ -112,7 +133,7 @@ async function submitRegistration() {
       </div>
 
       <p v-if="submissionMessage" class="auth-submit-error" role="alert">{{ submissionMessage }}</p>
-      <button class="primary-button wide" type="submit" aria-describedby="register-service-note">注册账号（服务暂未接入）</button>
+      <button class="primary-button wide" type="submit" :disabled="submitting">{{ submitting ? '正在注册…' : '注册账号' }}</button>
     </form>
 
     <p class="auth-switch">已有账号，<RouterLink :to="{ name: 'login' }">返回登录</RouterLink></p>

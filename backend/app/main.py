@@ -20,8 +20,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application = FastAPI(
         title=current_settings.app_name,
         version=current_settings.app_version,
-        description="校园失物招领信息查询 API",
+        description="校园失物招领信息查询与管理 API",
     )
+    # 路由依赖读取与本应用实例相同的配置，避免测试或多实例运行时混用全局配置。
+    application.dependency_overrides[get_settings] = lambda: current_settings
 
     # 请求标识中间件为每次请求生成唯一编号，方便把接口错误与服务端日志关联起来。
     application.add_middleware(RequestIdMiddleware)

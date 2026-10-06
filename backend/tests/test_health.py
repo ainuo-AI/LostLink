@@ -26,3 +26,10 @@ def test_openapi_document_is_available(client: TestClient) -> None:
 
     assert response.status_code == 200
     assert "/api/v1/items" in response.json()["paths"]
+    assert "/api/v1/auth/register" in response.json()["paths"]
+    assert "/api/v1/auth/login" in response.json()["paths"]
+    assert "/api/v1/auth/logout" in response.json()["paths"]
+    assert "/api/v1/users/me" in response.json()["paths"]
+    assert "/api/v1/users/me/items" in response.json()["paths"]
+    assert "/api/v1/items/{item_id}" in response.json()["paths"]
+    assert "/api/v1/items/{item_id}/status" in response.json()["paths"]

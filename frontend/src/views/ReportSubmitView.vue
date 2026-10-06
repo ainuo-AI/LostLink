@@ -3,7 +3,7 @@
  * 举报提交页面
  *
  * 先加载被举报物品摘要，再校验举报原因、说明和真实性确认；
- * 当前结果只写入浏览器本地存储，不调用后端，也不代表管理员已经收到。
+ * 提交结果写入服务端举报队列，管理员可以在审核台查看和处理。
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -74,7 +74,7 @@ async function loadItem() {
   }
 }
 
-/** 功能对应：校验表单后保存为浏览器本地演示记录，不修改后端。 */
+/** 校验表单后提交真实举报，并展示服务端生成的举报编号。 */
 async function submitReport() {
   submitted.value = true
   submitError.value = ''

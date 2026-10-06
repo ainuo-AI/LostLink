@@ -1,6 +1,6 @@
 # 部署说明
 
-> 状态：上线前规范。前端、后端和 MySQL 已有本地只读链路；生产平台、配置、监控和备份尚未确定，新增前端演示流程也没有服务端接口，不能把当前工程视为可发布的完整系统。
+> 状态：上线前规范。前端、后端和 MySQL 已完成当前全部业务模块的本地联调；生产平台、配置、监控、备份和认领核验尚未完成，不能把当前工程视为可发布的完整系统。
 
 ## 环境
 
@@ -42,14 +42,19 @@
 
 ## 环境变量清单
 
-以下变量按当前两个 `.env.example` 核对。示例口令仅供本地开发，不是生产配置；尚未实现的认证和外部服务没有已确认变量。不得填写真实值。
+以下变量按当前两个 `.env.example` 核对。示例口令仅供本地开发，不是生产配置；外部服务尚无已确认变量。不得填写真实值。
 
 | 变量 | 用途 | 必需 | 敏感 | 状态 |
 | --- | --- | --- | --- | --- |
 | `DATABASE_URL` | SQLAlchemy MySQL 连接地址 | 后端本地运行需要 | 是 | `backend/.env.example` 已提供本地示例；生产值待确认 |
 | `MYSQL_DATABASE`、`MYSQL_USER`、`MYSQL_PASSWORD`、`MYSQL_ROOT_PASSWORD`、`MYSQL_PORT` | 本地 Compose MySQL 初始化与端口 | 使用当前 Compose 时需要 | 密码是 | `backend/.env.example` 已列出本地示例 |
 | `APP_NAME`、`APP_VERSION`、`APP_ENV`、`API_V1_PREFIX`、`CORS_ORIGINS` | 后端应用与跨域配置 | 按环境 | 否 | `backend/.env.example` 已列出 |
-| `VITE_API_BASE_URL` | 前端真实只读 API 地址 | 首页需要 | 否 | `frontend/.env.example` 已列出 |
+| `VITE_API_BASE_URL` | 前端 API 基础地址 | 首页、认证和物品管理请求需要 | 否 | `frontend/.env.example` 已列出 |
+| `AUTH_SESSION_TTL_HOURS` | Bearer 会话有效小时数 | 后端认证 | 否 | 默认 168 |
+| `AUTH_MAX_LOGIN_ATTEMPTS` | 临时锁定前连续失败次数 | 后端认证 | 否 | 默认 5 |
+| `AUTH_LOGIN_LOCK_MINUTES` | 登录临时锁定分钟数 | 后端认证 | 否 | 默认 15 |
+| `UPLOAD_DIRECTORY` | 本地图片受控存储目录 | 使用图片上传时需要 | 否 | 默认 `var/uploads`；生产应使用持久卷或对象存储 |
+| `UPLOAD_MAX_BYTES` | 单张图片最大字节数 | 图片上传 | 否 | 默认 5242880 |
 
 `SECRET_KEY` 及 AI、地图、存储、通知变量尚未出现在当前示例配置中；只有对应能力完成设计与实现后才能补充，不能标为当前必需。
 

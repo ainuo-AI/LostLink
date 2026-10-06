@@ -1,40 +1,17 @@
-/** 纯前端举报记录存储。
+/** 举报 API 适配模块。
  *
- * 这里让课程演示可以完成“填写 -> 提交 -> 成功”的闭环，但不会请求或修改后端。
- * 后续后端提供举报接口后，可把本函数替换成 POST /api/v1/reports。
+ * 页面仍使用原有 ReportCreate/LocalReport 类型，本模块负责把 item_id 放进资源路径，
+ * 并通过统一 HTTP 客户端附加当前登录会话。
  */
 
+import { requestJson } from '../api/client'
 import type { LocalReport, ReportCreate } from '../types/report'
 
-const REPORTS_KEY = 'lostlink:reports'
-
-/** 读取以前的本地举报；没有记录或 JSON 无法解析时返回空数组。 */
-function readReports(): LocalReport[] {
-  try {
-    const raw = window.localStorage.getItem(REPORTS_KEY)
-    return raw ? JSON.parse(raw) as LocalReport[] : []
-  } catch {
-    return []
-  }
-}
-
-/** 功能对应：点击“提交举报”后把记录保存在当前浏览器。 */
-export async function createLocalReport(payload: ReportCreate): Promise<LocalReport> {
-  const reports = readReports()
-  // 纯前端阶段用现有最大编号加一，正式后端应改为服务端生成不可冲突的 ID。
-  const report: LocalReport = {
-    id: reports.reduce((maxId, current) => Math.max(maxId, current.id), 0) + 1,
-    item_id: payload.item_id,
-    reason: payload.reason,
-    description: payload.description,
-    status: 'pending',
-    created_at: new Date().toISOString(),
-  }
-
-  try {
-    window.localStorage.setItem(REPORTS_KEY, JSON.stringify([...reports, report]))
-  } catch {
-    // 即使浏览器禁用存储，也返回本次演示结果，不让页面无响应。
-  }
-  return report
+/** 向服务端提交举报，返回可用于成功页展示的举报记录。 */
+export function createLocalReport(payload: ReportCreate): Promise<LocalReport> {
+  return requestJson<LocalReport>(`/api/v1/items/${payload.item_id}/reports`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason: payload.reason, description: payload.description }),
+  }, { authenticated: true })
 }
