@@ -12,6 +12,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from app.core.errors import AppError
+from app.integrations.multimodal_matching import MultimodalMatcher
 from app.repositories.auth_repository import AuthRepository, UserRecord
 from app.repositories.feature_repository import (
     AuditRecord,
@@ -243,15 +244,36 @@ class ReportService:
 class MatchingService:
     """计算可解释候选分数并管理用户通知与反馈。"""
 
-    def __init__(self, features: FeatureRepository, items: ItemRepository) -> None:
+    def __init__(
+        self,
+        features: FeatureRepository,
+        items: ItemRepository,
+        ai_matcher: MultimodalMatcher | None = None,
+    ) -> None:
         self.features = features
         self.items = items
+        self.ai_matcher = ai_matcher
 
     def generate_for_item(self, item: ItemRecord) -> None:
         """为新发布记录和候选记录的双方所有者创建去重通知。"""
 
-        for candidate in self.items.list_matching_candidates(source=item):
-            score, dimensions = self._score(item, candidate)
+        ranked = [
+            (candidate, *self._score(item, candidate))
+            for candidate in self.items.list_matching_candidates(source=item)
+        ]
+        ranked.sort(key=lambda row: (row[1], row[0].id), reverse=True)
+        assessments = (
+            self.ai_matcher.assess(item, [row[0] for row in ranked]) if self.ai_matcher else {}
+        )
+        for candidate, score, dimensions in ranked:
+            if assessment := assessments.get(candidate.id):
+                weight = self.ai_matcher.settings.matching_ai_weight
+                score = round(score * (1 - weight) + assessment.score * weight)
+                dimensions.append({
+                    "label": "AI 图文",
+                    "score": assessment.score,
+                    "explanation": assessment.explanation,
+                })
             if score < 55:
                 continue
             if item.owner_id is not None:
@@ -323,7 +345,11 @@ class MatchingService:
         return MatchNotificationRead(
             id=row.id,
             title=f"发现一条{candidate.category}候选线索",
-            summary="系统根据类别、校区、地点和时间生成候选，请核对后反馈。",
+            summary=(
+                "系统结合规则与 AI 图文比较生成候选，请核对后反馈。"
+                if any(dimension["label"] == "AI 图文" for dimension in row.dimensions)
+                else "系统根据类别、校区、地点和时间生成候选，请核对后反馈。"
+            ),
             created_at=row.created_at,
             is_read=row.is_read,
             status=row.status,

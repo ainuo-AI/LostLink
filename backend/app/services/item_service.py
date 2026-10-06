@@ -6,6 +6,7 @@ Repository 执行持久化。该模块不依赖 FastAPI，也不直接执行 SQL
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from app.core.errors import AppError
 from app.core.security import require_owner_or_admin
@@ -32,6 +33,9 @@ from app.schemas.item import (
     ItemUpdate,
     RecordType,
 )
+
+if TYPE_CHECKING:
+    from app.services.feature_service import MatchingService
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,11 +70,13 @@ class ItemService:
         self,
         repository: ItemRepository,
         feature_repository: FeatureRepository | None = None,
+        matching_service: "MatchingService | None" = None,
     ) -> None:
         """注入物品仓储，并可选接入图片关联和匹配通知仓储。"""
 
         self.repository = repository
         self.feature_repository = feature_repository
+        self.matching_service = matching_service
 
     def list_items(
         self,
@@ -161,7 +167,10 @@ class ItemService:
             # 延迟导入避免两个 Service 模块在加载阶段形成循环依赖。
             from app.services.feature_service import MatchingService
 
-            MatchingService(self.feature_repository, self.repository).generate_for_item(item)
+            matcher = self.matching_service or MatchingService(
+                self.feature_repository, self.repository
+            )
+            matcher.generate_for_item(item)
         owner = self._to_owner(item)
         return self._with_images(owner) if self.feature_repository else owner
 
