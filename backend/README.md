@@ -165,9 +165,14 @@ GET /api/v1/items?keyword=耳机&type=found&campus=宁河校区&page=1&page_size
 - `alembic/`：数据库迁移
 - `tests/`：后端测试
 
-当前匹配与校准规则位于 Service 和 Repository 分层中；`app/integrations/` 与 `app/tasks/` 仍为将来接入外部服务和异步任务预留。
+当前匹配与校准规则位于 Service 和 Repository 分层中；`app/integrations/`
+包含可选图文模型适配器，任务队列仍未接入。
 
 ## 后续范围
+
+2026-10-07 增加可选 OpenAI 兼容图文匹配适配器，可通过 `MATCHING_AI_*`
+配置接入 DeepSeek 等支持图片输入的模型。默认关闭，配置方式、降级及第一版限制见
+[图文匹配接入说明](../docs/api/multimodal-matching.md)。真实供应商联调仍待配置密钥后验证。
 
 - 校园统一身份验证、密码重置、物品删除和完整认领核验
 - 对象存储、异步匹配、站外通知和其他外部集成

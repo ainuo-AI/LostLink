@@ -43,7 +43,9 @@ def client(
     """为每个测试创建配置固定的 API 客户端。"""
 
     settings = Settings(
+        _env_file=None,
         app_env="test",
+        matching_ai_enabled=False,
         cors_origins=["http://testserver"],
         upload_directory=tmp_path / "uploads",
     )

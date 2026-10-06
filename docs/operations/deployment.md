@@ -56,7 +56,9 @@
 | `UPLOAD_DIRECTORY` | 本地图片受控存储目录 | 使用图片上传时需要 | 否 | 默认 `var/uploads`；生产应使用持久卷或对象存储 |
 | `UPLOAD_MAX_BYTES` | 单张图片最大字节数 | 图片上传 | 否 | 默认 5242880 |
 
-`SECRET_KEY` 及 AI、地图、存储、通知变量尚未出现在当前示例配置中；只有对应能力完成设计与实现后才能补充，不能标为当前必需。
+2026-10-07 新增可选的 `MATCHING_AI_ENABLED`、`MATCHING_AI_BASE_URL`、`MATCHING_AI_API_KEY`、`MATCHING_AI_MODEL`、超时、候选数量、融合权重及图片预算配置。只有启用 AI 匹配时需要供应商地址、密钥和模型；密钥为敏感项。完整配置和同步调用限制见 [图文匹配接入说明](../api/multimodal-matching.md)。
+
+`SECRET_KEY` 及地图、对象存储、站外通知变量尚未出现在当前示例配置中；只有对应能力完成设计与实现后才能补充，不能标为当前必需。
 
 ## 发布后记录
 

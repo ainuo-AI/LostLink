@@ -15,6 +15,7 @@ from app.core.config import Settings, get_settings
 from app.core.database import get_db_session
 from app.core.errors import AppError
 from app.core.security import require_admin_role
+from app.integrations.multimodal_matching import MultimodalMatcher
 from app.repositories.auth_repository import AuthRepository, SqlAlchemyAuthRepository
 from app.repositories.feature_repository import FeatureRepository, SqlAlchemyFeatureRepository
 from app.repositories.item_repository import ItemRepository, SqlAlchemyItemRepository
@@ -40,15 +41,6 @@ def get_feature_repository(
     """用同一个请求数据库会话创建新增功能仓储。"""
 
     return SqlAlchemyFeatureRepository(session)
-
-
-def get_item_service(
-    repository: Annotated[ItemRepository, Depends(get_item_repository)],
-    features: Annotated[FeatureRepository, Depends(get_feature_repository)],
-) -> ItemService:
-    """组装物品查询与管理 Service，便于测试替换同一个 Repository。"""
-
-    return ItemService(repository, features)
 
 
 # 以下依赖组成认证链：数据库会话 → Repository → Service → Bearer 用户。
@@ -95,10 +87,22 @@ def get_report_service(
 def get_matching_service(
     features: Annotated[FeatureRepository, Depends(get_feature_repository)],
     items: Annotated[ItemRepository, Depends(get_item_repository)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> MatchingService:
     """组装匹配通知 Service。"""
 
-    return MatchingService(features, items)
+    ai = MultimodalMatcher(settings, features) if settings.matching_ai_enabled else None
+    return MatchingService(features, items, ai)
+
+
+def get_item_service(
+    repository: Annotated[ItemRepository, Depends(get_item_repository)],
+    features: Annotated[FeatureRepository, Depends(get_feature_repository)],
+    matching: Annotated[MatchingService, Depends(get_matching_service)],
+) -> ItemService:
+    """把配置后的匹配 Service 注入发布流程。"""
+
+    return ItemService(repository, features, matching)
 
 
 def get_admin_service(
