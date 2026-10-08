@@ -1,0 +1,1049 @@
+{
+  "version": 2,
+  "coordinate_system": "WGS84",
+  "distance_kind": "straight_line",
+  "unit": "meter",
+  "generated_on": "2026-10-08",
+  "attribution": "© OpenStreetMap contributors, ODbL 1.0",
+  "source_api": "https://api.openstreetmap.org/api/0.6/map",
+  "coordinate_method": "Named OSM ways use bounding box centers; nodes use node coordinates. Six business locations use explicitly labeled fictional WGS84 coordinates for demonstration; pairs involving them are simulated distances. Test placeholders have no coordinates.",
+  "places": [
+    {
+      "id": "dl-n-teach1",
+      "campus": "东丽校区",
+      "area": "北区",
+      "name": "北教1",
+      "aliases": [
+        "北教一",
+        "北教1号楼",
+        "北一教学楼"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.11008365,
+        "longitude": 117.3417455
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/875723702",
+        "map_name": "北教一",
+        "osm_version": 2,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-n-teach2",
+      "campus": "东丽校区",
+      "area": "北区",
+      "name": "北教2",
+      "aliases": [
+        "北教二",
+        "北教2号楼",
+        "北二教学楼"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.11041625,
+        "longitude": 117.3408323
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/875723704",
+        "map_name": "北教2",
+        "osm_version": 3,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-n-teach3",
+      "campus": "东丽校区",
+      "area": "北区",
+      "name": "北教3",
+      "aliases": [
+        "北教三",
+        "北教3号楼",
+        "北三教学楼"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.11048865,
+        "longitude": 117.3419897
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/875723703",
+        "map_name": "北教3",
+        "osm_version": 3,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-n-teach4",
+      "campus": "东丽校区",
+      "area": "北区",
+      "name": "北教4",
+      "aliases": [
+        "北教四",
+        "北教4号楼"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.1093241,
+        "longitude": 117.3434958
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/875723707",
+        "map_name": "北教4",
+        "osm_version": 3,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-n-teach8",
+      "campus": "东丽校区",
+      "area": "北区",
+      "name": "北教8",
+      "aliases": [
+        "北教八",
+        "北八教学楼"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.1098558,
+        "longitude": 117.34371855
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/884028252",
+        "map_name": "北教8",
+        "osm_version": 3,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-n-basic-lab",
+      "campus": "东丽校区",
+      "area": "北区",
+      "name": "基础实验中心",
+      "aliases": [
+        "北教18"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.1104119,
+        "longitude": 117.34406155
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/884028253",
+        "map_name": "基础实验中心",
+        "osm_version": 3,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-s-social-library",
+      "campus": "东丽校区",
+      "area": "南区",
+      "name": "社科图书馆",
+      "aliases": [
+        "社会科学图书馆",
+        "南院老图书馆"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.10600235,
+        "longitude": 117.34662815
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/796551122",
+        "map_name": "图书馆",
+        "osm_version": 2,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-s-mingde",
+      "campus": "东丽校区",
+      "area": "南区",
+      "name": "明德馆",
+      "aliases": [
+        "科技图书馆"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.10028385,
+        "longitude": 117.34839005
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/796551130",
+        "map_name": "明德馆",
+        "osm_version": 3,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-s-chemistry",
+      "campus": "东丽校区",
+      "area": "南区",
+      "name": "化学实验室",
+      "aliases": [],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.1039694,
+        "longitude": 117.3450006
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/796551124",
+        "map_name": "化学实验室",
+        "osm_version": 2,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-s-airtraffic",
+      "campus": "东丽校区",
+      "area": "南区",
+      "name": "空管楼",
+      "aliases": [
+        "空管实验教学楼"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.0991981,
+        "longitude": 117.3509173
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/796551129",
+        "map_name": "空管楼",
+        "osm_version": 3,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-s-teach5",
+      "campus": "东丽校区",
+      "area": "南区",
+      "name": "南教5",
+      "aliases": [
+        "南教五",
+        "南五教学楼"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.1005278,
+        "longitude": 117.34717135
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/796551132",
+        "map_name": "南教五",
+        "osm_version": 3,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-s-canteen1",
+      "campus": "东丽校区",
+      "area": "南区",
+      "name": "南一食堂",
+      "aliases": [
+        "南1食堂"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.10228395,
+        "longitude": 117.3461324
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/796551125",
+        "map_name": "南一食堂",
+        "osm_version": 3,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-s-canteen2",
+      "campus": "东丽校区",
+      "area": "南区",
+      "name": "南二食堂",
+      "aliases": [
+        "南2食堂"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.10065595,
+        "longitude": 117.34441575
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/796551133",
+        "map_name": "南二食堂",
+        "osm_version": 4,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "dl-s-metalworking",
+      "campus": "东丽校区",
+      "area": "南区",
+      "name": "金工实习大楼",
+      "aliases": [],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.0988515,
+        "longitude": 117.3454965
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/way/1036330693",
+        "map_name": "金工实习大楼",
+        "osm_version": 2,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "bounding_box_center"
+      }
+    },
+    {
+      "id": "nh-south-gate",
+      "campus": "宁河校区",
+      "area": null,
+      "name": "宁河校区南门",
+      "aliases": [
+        "南门"
+      ],
+      "status": "map_verified",
+      "coordinates": {
+        "latitude": 39.2544705,
+        "longitude": 117.4517923
+      },
+      "source": {
+        "url": "https://www.openstreetmap.org/node/9547714204",
+        "map_name": "中国民航大学（宁河）- 南门",
+        "osm_version": 1,
+        "retrieved_on": "2026-10-08",
+        "representative_point": "node"
+      }
+    },
+    {
+      "id": "dl-n-library",
+      "campus": "东丽校区",
+      "area": "北区",
+      "name": "图书馆",
+      "aliases": [
+        "图书馆二层",
+        "图书馆三层"
+      ],
+      "status": "synthetic",
+      "coordinates": {
+        "latitude": 39.1108,
+        "longitude": 117.343
+      },
+      "source": {
+        "kind": "synthetic",
+        "created_on": "2026-10-08",
+        "basis": "User requested fictional coordinates for the six unverified business locations."
+      },
+      "note": "按用户要求填写的虚构坐标，仅用于距离匹配演示，不代表该地点的真实位置；原待核实说明：需确认北区图书馆所指建筑；不能用南区图书馆或校区中心代替。"
+    },
+    {
+      "id": "dl-s-teach-a",
+      "campus": "东丽校区",
+      "area": "南区",
+      "name": "教学楼 A 座",
+      "aliases": [
+        "教学楼A座"
+      ],
+      "status": "synthetic",
+      "coordinates": {
+        "latitude": 39.1049,
+        "longitude": 117.3475
+      },
+      "source": {
+        "kind": "synthetic",
+        "created_on": "2026-10-08",
+        "basis": "User requested fictional coordinates for the six unverified business locations."
+      },
+      "note": "按用户要求填写的虚构坐标，仅用于距离匹配演示，不代表该地点的真实位置；原待核实说明：需确认正式楼名和A座代表点。"
+    },
+    {
+      "id": "dl-n-boxue",
+      "campus": "东丽校区",
+      "area": "北区",
+      "name": "博学楼",
+      "aliases": [],
+      "status": "synthetic",
+      "coordinates": {
+        "latitude": 39.11045,
+        "longitude": 117.3427
+      },
+      "source": {
+        "kind": "synthetic",
+        "created_on": "2026-10-08",
+        "basis": "User requested fictional coordinates for the six unverified business locations."
+      },
+      "note": "按用户要求填写的虚构坐标，仅用于距离匹配演示，不代表该地点的真实位置；原待核实说明：未找到与该简称唯一对应的地图建筑。"
+    },
+    {
+      "id": "dl-s-lab",
+      "campus": "东丽校区",
+      "area": "南区",
+      "name": "实验楼",
+      "aliases": [],
+      "status": "synthetic",
+      "coordinates": {
+        "latitude": 39.1036,
+        "longitude": 117.3457
+      },
+      "source": {
+        "kind": "synthetic",
+        "created_on": "2026-10-08",
+        "basis": "User requested fictional coordinates for the six unverified business locations."
+      },
+      "note": "按用户要求填写的虚构坐标，仅用于距离匹配演示，不代表该地点的真实位置；原待核实说明：实验楼有多栋，不能擅自映射到化学实验室或空管楼。"
+    },
+    {
+      "id": "nh-canteen2",
+      "campus": "宁河校区",
+      "area": null,
+      "name": "第二食堂",
+      "aliases": [
+        "二食堂"
+      ],
+      "status": "synthetic",
+      "coordinates": {
+        "latitude": 39.2537,
+        "longitude": 117.4545
+      },
+      "source": {
+        "kind": "synthetic",
+        "created_on": "2026-10-08",
+        "basis": "User requested fictional coordinates for the six unverified business locations."
+      },
+      "note": "按用户要求填写的虚构坐标，仅用于距离匹配演示，不代表该地点的真实位置；原待核实说明：需确认宁河第二食堂坐标；不能用东丽南二食堂代替。"
+    },
+    {
+      "id": "nh-playground-south",
+      "campus": "宁河校区",
+      "area": null,
+      "name": "操场南门",
+      "aliases": [],
+      "status": "synthetic",
+      "coordinates": {
+        "latitude": 39.256,
+        "longitude": 117.4554
+      },
+      "source": {
+        "kind": "synthetic",
+        "created_on": "2026-10-08",
+        "basis": "User requested fictional coordinates for the six unverified business locations."
+      },
+      "note": "按用户要求填写的虚构坐标，仅用于距离匹配演示，不代表该地点的真实位置；原待核实说明：需要操场南侧入口坐标；不能用宁河校区南门代替。"
+    },
+    {
+      "id": "nh-test",
+      "campus": "宁河校区",
+      "area": null,
+      "name": "测试地点",
+      "aliases": [
+        "演示地点"
+      ],
+      "status": "placeholder",
+      "coordinates": null,
+      "source": null,
+      "note": "测试占位数据，没有真实地图位置。"
+    },
+    {
+      "id": "dl-n-demo",
+      "campus": "东丽校区",
+      "area": "北区",
+      "name": "演示地点",
+      "aliases": [],
+      "status": "placeholder",
+      "coordinates": null,
+      "source": null,
+      "note": "开发演示占位数据，没有真实地图位置。"
+    }
+  ],
+  "distances_meters": {
+    "dl-n-teach1": {
+      "dl-n-teach1": 0,
+      "dl-n-teach2": 87,
+      "dl-n-teach3": 50,
+      "dl-n-teach4": 173,
+      "dl-n-teach8": 172,
+      "dl-n-basic-lab": 203,
+      "dl-s-social-library": 619,
+      "dl-s-mingde": 1231,
+      "dl-s-chemistry": 736,
+      "dl-s-airtraffic": 1446,
+      "dl-s-teach5": 1161,
+      "dl-s-canteen1": 946,
+      "dl-s-canteen2": 1073,
+      "dl-s-metalworking": 1290,
+      "nh-south-gate": 18648,
+      "dl-n-library": 134,
+      "dl-s-teach-a": 761,
+      "dl-n-boxue": 92,
+      "dl-s-lab": 798,
+      "nh-canteen2": 18694,
+      "nh-playground-south": 18953,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-n-teach2": {
+      "dl-n-teach1": 87,
+      "dl-n-teach2": 0,
+      "dl-n-teach3": 100,
+      "dl-n-teach4": 260,
+      "dl-n-teach8": 257,
+      "dl-n-basic-lab": 279,
+      "dl-s-social-library": 701,
+      "dl-s-mingde": 1302,
+      "dl-s-chemistry": 802,
+      "dl-s-airtraffic": 1521,
+      "dl-s-teach5": 1228,
+      "dl-s-canteen1": 1013,
+      "dl-s-canteen2": 1128,
+      "dl-s-metalworking": 1347,
+      "nh-south-gate": 18656,
+      "dl-n-library": 192,
+      "dl-s-teach-a": 841,
+      "dl-n-boxue": 161,
+      "dl-s-lab": 867,
+      "nh-canteen2": 18704,
+      "nh-playground-south": 18962,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-n-teach3": {
+      "dl-n-teach1": 50,
+      "dl-n-teach2": 100,
+      "dl-n-teach3": 0,
+      "dl-n-teach4": 183,
+      "dl-n-teach8": 165,
+      "dl-n-basic-lab": 179,
+      "dl-s-social-library": 640,
+      "dl-s-mingde": 1262,
+      "dl-s-chemistry": 770,
+      "dl-s-airtraffic": 1473,
+      "dl-s-teach5": 1194,
+      "dl-s-canteen1": 980,
+      "dl-s-canteen2": 1113,
+      "dl-s-metalworking": 1329,
+      "nh-south-gate": 18598,
+      "dl-n-library": 94,
+      "dl-s-teach-a": 782,
+      "dl-n-boxue": 61,
+      "dl-s-lab": 830,
+      "nh-canteen2": 18645,
+      "nh-playground-south": 18904,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-n-teach4": {
+      "dl-n-teach1": 173,
+      "dl-n-teach2": 260,
+      "dl-n-teach3": 183,
+      "dl-n-teach4": 0,
+      "dl-n-teach8": 62,
+      "dl-n-basic-lab": 130,
+      "dl-s-social-library": 458,
+      "dl-s-mingde": 1090,
+      "dl-s-chemistry": 609,
+      "dl-s-airtraffic": 1295,
+      "dl-s-teach5": 1028,
+      "dl-s-canteen1": 815,
+      "dl-s-canteen2": 967,
+      "dl-s-metalworking": 1177,
+      "nh-south-gate": 18644,
+      "dl-n-library": 170,
+      "dl-s-teach-a": 601,
+      "dl-n-boxue": 143,
+      "dl-s-lab": 664,
+      "nh-canteen2": 18689,
+      "nh-playground-south": 18948,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-n-teach8": {
+      "dl-n-teach1": 172,
+      "dl-n-teach2": 257,
+      "dl-n-teach3": 165,
+      "dl-n-teach4": 62,
+      "dl-n-teach8": 0,
+      "dl-n-basic-lab": 69,
+      "dl-s-social-library": 497,
+      "dl-s-mingde": 1138,
+      "dl-s-chemistry": 664,
+      "dl-s-airtraffic": 1338,
+      "dl-s-teach5": 1079,
+      "dl-s-canteen1": 867,
+      "dl-s-canteen2": 1025,
+      "dl-s-metalworking": 1233,
+      "nh-south-gate": 18584,
+      "dl-n-library": 122,
+      "dl-s-teach-a": 640,
+      "dl-n-boxue": 110,
+      "dl-s-lab": 716,
+      "nh-canteen2": 18628,
+      "nh-playground-south": 18887,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-n-basic-lab": {
+      "dl-n-teach1": 203,
+      "dl-n-teach2": 279,
+      "dl-n-teach3": 179,
+      "dl-n-teach4": 130,
+      "dl-n-teach8": 69,
+      "dl-n-basic-lab": 0,
+      "dl-s-social-library": 538,
+      "dl-s-mingde": 1187,
+      "dl-s-chemistry": 721,
+      "dl-s-airtraffic": 1380,
+      "dl-s-teach5": 1131,
+      "dl-s-canteen1": 921,
+      "dl-s-canteen2": 1085,
+      "dl-s-metalworking": 1291,
+      "nh-south-gate": 18515,
+      "dl-n-library": 101,
+      "dl-s-teach-a": 681,
+      "dl-n-boxue": 118,
+      "dl-s-lab": 771,
+      "nh-canteen2": 18560,
+      "nh-playground-south": 18819,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-s-social-library": {
+      "dl-n-teach1": 619,
+      "dl-n-teach2": 701,
+      "dl-n-teach3": 640,
+      "dl-n-teach4": 458,
+      "dl-n-teach8": 497,
+      "dl-n-basic-lab": 538,
+      "dl-s-social-library": 0,
+      "dl-s-mingde": 654,
+      "dl-s-chemistry": 266,
+      "dl-s-airtraffic": 842,
+      "dl-s-teach5": 611,
+      "dl-s-canteen1": 416,
+      "dl-s-canteen2": 624,
+      "dl-s-metalworking": 801,
+      "nh-south-gate": 18834,
+      "dl-n-library": 619,
+      "dl-s-teach-a": 144,
+      "dl-n-boxue": 600,
+      "dl-s-lab": 279,
+      "nh-canteen2": 18873,
+      "nh-playground-south": 19133,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-s-mingde": {
+      "dl-n-teach1": 1231,
+      "dl-n-teach2": 1302,
+      "dl-n-teach3": 1262,
+      "dl-n-teach4": 1090,
+      "dl-n-teach8": 1138,
+      "dl-n-basic-lab": 1187,
+      "dl-s-social-library": 654,
+      "dl-s-mingde": 0,
+      "dl-s-chemistry": 503,
+      "dl-s-airtraffic": 249,
+      "dl-s-teach5": 109,
+      "dl-s-canteen1": 296,
+      "dl-s-canteen2": 345,
+      "dl-s-metalworking": 296,
+      "nh-south-gate": 19323,
+      "dl-n-library": 1258,
+      "dl-s-teach-a": 519,
+      "dl-n-boxue": 1232,
+      "dl-s-lab": 436,
+      "nh-canteen2": 19356,
+      "nh-playground-south": 19618,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-s-chemistry": {
+      "dl-n-teach1": 736,
+      "dl-n-teach2": 802,
+      "dl-n-teach3": 770,
+      "dl-n-teach4": 609,
+      "dl-n-teach8": 664,
+      "dl-n-basic-lab": 721,
+      "dl-s-social-library": 266,
+      "dl-s-mingde": 503,
+      "dl-s-chemistry": 0,
+      "dl-s-airtraffic": 736,
+      "dl-s-teach5": 426,
+      "dl-s-canteen1": 211,
+      "dl-s-canteen2": 372,
+      "dl-s-metalworking": 571,
+      "nh-south-gate": 19099,
+      "dl-n-library": 779,
+      "dl-s-teach-a": 239,
+      "dl-n-boxue": 747,
+      "dl-s-lab": 73,
+      "nh-canteen2": 19139,
+      "nh-playground-south": 19399,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-s-airtraffic": {
+      "dl-n-teach1": 1446,
+      "dl-n-teach2": 1521,
+      "dl-n-teach3": 1473,
+      "dl-n-teach4": 1295,
+      "dl-n-teach8": 1338,
+      "dl-n-basic-lab": 1380,
+      "dl-s-social-library": 842,
+      "dl-s-mingde": 249,
+      "dl-s-chemistry": 736,
+      "dl-s-airtraffic": 0,
+      "dl-s-teach5": 355,
+      "dl-s-canteen1": 537,
+      "dl-s-canteen2": 584,
+      "dl-s-metalworking": 469,
+      "nh-south-gate": 19331,
+      "dl-n-library": 1460,
+      "dl-s-teach-a": 699,
+      "dl-n-boxue": 1438,
+      "dl-s-lab": 665,
+      "nh-canteen2": 19362,
+      "nh-playground-south": 19624,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-s-teach5": {
+      "dl-n-teach1": 1161,
+      "dl-n-teach2": 1228,
+      "dl-n-teach3": 1194,
+      "dl-n-teach4": 1028,
+      "dl-n-teach8": 1079,
+      "dl-n-basic-lab": 1131,
+      "dl-s-social-library": 611,
+      "dl-s-mingde": 109,
+      "dl-s-chemistry": 426,
+      "dl-s-airtraffic": 355,
+      "dl-s-teach5": 0,
+      "dl-s-canteen1": 215,
+      "dl-s-canteen2": 238,
+      "dl-s-metalworking": 236,
+      "nh-south-gate": 19348,
+      "dl-n-library": 1198,
+      "dl-s-teach-a": 487,
+      "dl-n-boxue": 1169,
+      "dl-s-lab": 364,
+      "nh-canteen2": 19382,
+      "nh-playground-south": 19644,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-s-canteen1": {
+      "dl-n-teach1": 946,
+      "dl-n-teach2": 1013,
+      "dl-n-teach3": 980,
+      "dl-n-teach4": 815,
+      "dl-n-teach8": 867,
+      "dl-n-basic-lab": 921,
+      "dl-s-social-library": 416,
+      "dl-s-mingde": 296,
+      "dl-s-chemistry": 211,
+      "dl-s-airtraffic": 537,
+      "dl-s-teach5": 215,
+      "dl-s-canteen1": 0,
+      "dl-s-canteen2": 234,
+      "dl-s-metalworking": 386,
+      "nh-south-gate": 19218,
+      "dl-n-library": 985,
+      "dl-s-teach-a": 314,
+      "dl-n-boxue": 955,
+      "dl-s-lab": 151,
+      "nh-canteen2": 19254,
+      "nh-playground-south": 19516,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-s-canteen2": {
+      "dl-n-teach1": 1073,
+      "dl-n-teach2": 1128,
+      "dl-n-teach3": 1113,
+      "dl-n-teach4": 967,
+      "dl-n-teach8": 1025,
+      "dl-n-basic-lab": 1085,
+      "dl-s-social-library": 624,
+      "dl-s-mingde": 345,
+      "dl-s-chemistry": 372,
+      "dl-s-airtraffic": 584,
+      "dl-s-teach5": 238,
+      "dl-s-canteen1": 234,
+      "dl-s-canteen2": 0,
+      "dl-s-metalworking": 221,
+      "nh-south-gate": 19447,
+      "dl-n-library": 1135,
+      "dl-s-teach-a": 542,
+      "dl-n-boxue": 1099,
+      "dl-s-lab": 346,
+      "nh-canteen2": 19484,
+      "nh-playground-south": 19746,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-s-metalworking": {
+      "dl-n-teach1": 1290,
+      "dl-n-teach2": 1347,
+      "dl-n-teach3": 1329,
+      "dl-n-teach4": 1177,
+      "dl-n-teach8": 1233,
+      "dl-n-basic-lab": 1291,
+      "dl-s-social-library": 801,
+      "dl-s-mingde": 296,
+      "dl-s-chemistry": 571,
+      "dl-s-airtraffic": 469,
+      "dl-s-teach5": 236,
+      "dl-s-canteen1": 386,
+      "dl-s-canteen2": 221,
+      "dl-s-metalworking": 0,
+      "nh-south-gate": 19580,
+      "dl-n-library": 1346,
+      "dl-s-teach-a": 694,
+      "dl-n-boxue": 1312,
+      "dl-s-lab": 528,
+      "nh-canteen2": 19615,
+      "nh-playground-south": 19877,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "nh-south-gate": {
+      "dl-n-teach1": 18648,
+      "dl-n-teach2": 18656,
+      "dl-n-teach3": 18598,
+      "dl-n-teach4": 18644,
+      "dl-n-teach8": 18584,
+      "dl-n-basic-lab": 18515,
+      "dl-s-social-library": 18834,
+      "dl-s-mingde": 19323,
+      "dl-s-chemistry": 19099,
+      "dl-s-airtraffic": 19331,
+      "dl-s-teach5": 19348,
+      "dl-s-canteen1": 19218,
+      "dl-s-canteen2": 19447,
+      "dl-s-metalworking": 19580,
+      "nh-south-gate": 0,
+      "dl-n-library": 18524,
+      "dl-s-teach-a": 18905,
+      "dl-n-boxue": 18571,
+      "dl-s-lab": 19107,
+      "nh-canteen2": 248,
+      "nh-playground-south": 354,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-n-library": {
+      "dl-n-teach1": 134,
+      "dl-n-teach2": 192,
+      "dl-n-teach3": 94,
+      "dl-n-teach4": 170,
+      "dl-n-teach8": 122,
+      "dl-n-basic-lab": 101,
+      "dl-s-social-library": 619,
+      "dl-s-mingde": 1258,
+      "dl-s-chemistry": 779,
+      "dl-s-airtraffic": 1460,
+      "dl-s-teach5": 1198,
+      "dl-s-canteen1": 985,
+      "dl-s-canteen2": 1135,
+      "dl-s-metalworking": 1346,
+      "nh-south-gate": 18524,
+      "dl-n-library": 0,
+      "dl-s-teach-a": 762,
+      "dl-n-boxue": 47,
+      "dl-s-lab": 834,
+      "nh-canteen2": 18570,
+      "nh-playground-south": 18829,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-s-teach-a": {
+      "dl-n-teach1": 761,
+      "dl-n-teach2": 841,
+      "dl-n-teach3": 782,
+      "dl-n-teach4": 601,
+      "dl-n-teach8": 640,
+      "dl-n-basic-lab": 681,
+      "dl-s-social-library": 144,
+      "dl-s-mingde": 519,
+      "dl-s-chemistry": 239,
+      "dl-s-airtraffic": 699,
+      "dl-s-teach5": 487,
+      "dl-s-canteen1": 314,
+      "dl-s-canteen2": 542,
+      "dl-s-metalworking": 694,
+      "nh-south-gate": 18905,
+      "dl-n-library": 762,
+      "dl-s-teach-a": 0,
+      "dl-n-boxue": 743,
+      "dl-s-lab": 212,
+      "nh-canteen2": 18943,
+      "nh-playground-south": 19204,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-n-boxue": {
+      "dl-n-teach1": 92,
+      "dl-n-teach2": 161,
+      "dl-n-teach3": 61,
+      "dl-n-teach4": 143,
+      "dl-n-teach8": 110,
+      "dl-n-basic-lab": 118,
+      "dl-s-social-library": 600,
+      "dl-s-mingde": 1232,
+      "dl-s-chemistry": 747,
+      "dl-s-airtraffic": 1438,
+      "dl-s-teach5": 1169,
+      "dl-s-canteen1": 955,
+      "dl-s-canteen2": 1099,
+      "dl-s-metalworking": 1312,
+      "nh-south-gate": 18571,
+      "dl-n-library": 47,
+      "dl-s-teach-a": 743,
+      "dl-n-boxue": 0,
+      "dl-s-lab": 804,
+      "nh-canteen2": 18617,
+      "nh-playground-south": 18876,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-s-lab": {
+      "dl-n-teach1": 798,
+      "dl-n-teach2": 867,
+      "dl-n-teach3": 830,
+      "dl-n-teach4": 664,
+      "dl-n-teach8": 716,
+      "dl-n-basic-lab": 771,
+      "dl-s-social-library": 279,
+      "dl-s-mingde": 436,
+      "dl-s-chemistry": 73,
+      "dl-s-airtraffic": 665,
+      "dl-s-teach5": 364,
+      "dl-s-canteen1": 151,
+      "dl-s-canteen2": 346,
+      "dl-s-metalworking": 528,
+      "nh-south-gate": 19107,
+      "dl-n-library": 834,
+      "dl-s-teach-a": 212,
+      "dl-n-boxue": 804,
+      "dl-s-lab": 0,
+      "nh-canteen2": 19145,
+      "nh-playground-south": 19406,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "nh-canteen2": {
+      "dl-n-teach1": 18694,
+      "dl-n-teach2": 18704,
+      "dl-n-teach3": 18645,
+      "dl-n-teach4": 18689,
+      "dl-n-teach8": 18628,
+      "dl-n-basic-lab": 18560,
+      "dl-s-social-library": 18873,
+      "dl-s-mingde": 19356,
+      "dl-s-chemistry": 19139,
+      "dl-s-airtraffic": 19362,
+      "dl-s-teach5": 19382,
+      "dl-s-canteen1": 19254,
+      "dl-s-canteen2": 19484,
+      "dl-s-metalworking": 19615,
+      "nh-south-gate": 248,
+      "dl-n-library": 18570,
+      "dl-s-teach-a": 18943,
+      "dl-n-boxue": 18617,
+      "dl-s-lab": 19145,
+      "nh-canteen2": 0,
+      "nh-playground-south": 267,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "nh-playground-south": {
+      "dl-n-teach1": 18953,
+      "dl-n-teach2": 18962,
+      "dl-n-teach3": 18904,
+      "dl-n-teach4": 18948,
+      "dl-n-teach8": 18887,
+      "dl-n-basic-lab": 18819,
+      "dl-s-social-library": 19133,
+      "dl-s-mingde": 19618,
+      "dl-s-chemistry": 19399,
+      "dl-s-airtraffic": 19624,
+      "dl-s-teach5": 19644,
+      "dl-s-canteen1": 19516,
+      "dl-s-canteen2": 19746,
+      "dl-s-metalworking": 19877,
+      "nh-south-gate": 354,
+      "dl-n-library": 18829,
+      "dl-s-teach-a": 19204,
+      "dl-n-boxue": 18876,
+      "dl-s-lab": 19406,
+      "nh-canteen2": 267,
+      "nh-playground-south": 0,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "nh-test": {
+      "dl-n-teach1": null,
+      "dl-n-teach2": null,
+      "dl-n-teach3": null,
+      "dl-n-teach4": null,
+      "dl-n-teach8": null,
+      "dl-n-basic-lab": null,
+      "dl-s-social-library": null,
+      "dl-s-mingde": null,
+      "dl-s-chemistry": null,
+      "dl-s-airtraffic": null,
+      "dl-s-teach5": null,
+      "dl-s-canteen1": null,
+      "dl-s-canteen2": null,
+      "dl-s-metalworking": null,
+      "nh-south-gate": null,
+      "dl-n-library": null,
+      "dl-s-teach-a": null,
+      "dl-n-boxue": null,
+      "dl-s-lab": null,
+      "nh-canteen2": null,
+      "nh-playground-south": null,
+      "nh-test": null,
+      "dl-n-demo": null
+    },
+    "dl-n-demo": {
+      "dl-n-teach1": null,
+      "dl-n-teach2": null,
+      "dl-n-teach3": null,
+      "dl-n-teach4": null,
+      "dl-n-teach8": null,
+      "dl-n-basic-lab": null,
+      "dl-s-social-library": null,
+      "dl-s-mingde": null,
+      "dl-s-chemistry": null,
+      "dl-s-airtraffic": null,
+      "dl-s-teach5": null,
+      "dl-s-canteen1": null,
+      "dl-s-canteen2": null,
+      "dl-s-metalworking": null,
+      "nh-south-gate": null,
+      "dl-n-library": null,
+      "dl-s-teach-a": null,
+      "dl-n-boxue": null,
+      "dl-s-lab": null,
+      "nh-canteen2": null,
+      "nh-playground-south": null,
+      "nh-test": null,
+      "dl-n-demo": null
+    }
+  }
+}

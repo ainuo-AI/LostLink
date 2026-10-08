@@ -60,6 +60,7 @@ def test_request_sends_labeled_images_and_only_public_fields(
         assert request.headers["Authorization"] == "Bearer test-key"
         body = json.loads(request.content)
         assert body["model"] == "test-vision"
+        assert "时间和地点距离由本地规则计算，不要推测距离" in body["messages"][0]["content"]
         content = body["messages"][1]["content"]
         assert [part["type"] for part in content] == [
             "text", "image_url", "text", "image_url",
@@ -192,7 +193,7 @@ def test_publication_uses_ai_and_still_succeeds_when_provider_fails(
     assert len(calls) == 2  # 每次发布至多调用一次（包含原有演示候选）。
     matches = client.get("/api/v1/notifications", headers=lost_headers).json()["items"]
     match = next(row for row in matches if row["candidate"]["id"] == found.json()["id"])
-    assert (len(match["dimensions"]) == 5) if provider_fails else (
+    assert (len(match["dimensions"]) == 4) if provider_fails else (
         match["dimensions"][-1]["label"] == "AI 图文"
     )
 

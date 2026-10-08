@@ -48,6 +48,7 @@ from app.schemas.feature import (
     UserStatusUpdate,
 )
 from app.schemas.item import ItemRead, ItemStatus
+from app.services.campus_distance import campus_distance_table
 
 
 class MediaService:
@@ -348,7 +349,7 @@ class MatchingService:
             summary=(
                 "系统结合规则与 AI 图文比较生成候选，请核对后反馈。"
                 if any(dimension["label"] == "AI 图文" for dimension in row.dimensions)
-                else "系统根据类别、校区、地点和时间生成候选，请核对后反馈。"
+                else "系统根据物品特征、地点距离和时间生成候选，请核对后反馈。"
             ),
             created_at=row.created_at,
             is_read=row.is_read,
@@ -364,14 +365,7 @@ class MatchingService:
     @staticmethod
     def _score(source: ItemRecord, candidate: ItemRecord) -> tuple[int, list[dict[str, object]]]:
         category = 100 if source.category.casefold() == candidate.category.casefold() else 20
-        campus = 100 if source.campus == candidate.campus else 0
-        area = (
-            100
-            if source.area and source.area == candidate.area
-            else 50
-            if not source.area or not candidate.area
-            else 0
-        )
+        location = campus_distance_table().assess(source, candidate)
         hours = abs((source.occurred_at - candidate.occurred_at).total_seconds()) / 3600
         time_score = max(0, round(100 - min(hours, 168) / 168 * 100))
         source_words = set(source.title.casefold()) | set(source.description.casefold())
@@ -379,24 +373,31 @@ class MatchingService:
         text = round(
             100 * len(source_words & candidate_words) / max(1, len(source_words | candidate_words))
         )
+        # 用实地距离替换原来的校区20%+区域15%；缺坐标时不伪造距离分。
+        weighted = category * 0.35 + time_score * 0.20 + text * 0.10
         score = round(
-            category * 0.35 + campus * 0.20 + area * 0.15 + time_score * 0.20 + text * 0.10
+            weighted + location.score * 0.35 if location.score is not None else weighted
         )
         values = [
-            ("类别", category),
-            ("校区", campus),
-            ("区域", area),
-            ("时间", time_score),
-            ("文本", text),
+            ("类别", category, 35),
+            ("时间", time_score, 20),
+            ("文本", text, 10),
         ]
         return score, [
             {
                 "label": label,
                 "score": value,
-                "explanation": f"{label}相似度由结构化规则计算，结果仅用于候选排序。",
+                "explanation": (
+                    f"{label}相似度由结构化规则计算，基础权重 {weight}%；"
+                    + ("地点未评估时不计入地点分。" if location.score is None else "")
+                ),
             }
-            for label, value in values
-        ]
+            for label, value, weight in values
+        ] + [{
+            "label": "地点",
+            "score": location.score,
+            "explanation": location.explanation + " 基础权重 35%，500 米时为 50 分。",
+        }]
 
     def _public(self, item: ItemRecord) -> ItemRead:
         """构造匹配对比需要的公开物品字段和图片地址。"""

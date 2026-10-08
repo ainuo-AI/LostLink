@@ -102,7 +102,9 @@ def test_new_opposite_items_generate_match_and_accept_feedback(client: TestClien
     match = notifications.json()["items"][0]
     assert match["mine"]["id"] == lost.json()["id"]
     assert match["candidate"]["id"] == found.json()["id"]
-    assert len(match["dimensions"]) == 5
+    assert {dimension["label"] for dimension in match["dimensions"]} == {
+        "类别", "时间", "文本", "地点",
+    }
 
     feedback = client.patch(
         f"/api/v1/matches/{match['id']}/feedback",
