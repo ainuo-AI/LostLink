@@ -1,17 +1,39 @@
 import { describe, expect, it } from 'vitest'
 import { emptyDraft, maskContact, validateDraft, validateImages } from './itemValidation'
+import type { CampusLocationOption } from './campusLocations'
+
+const locations: CampusLocationOption[] = [
+  { id: 'north', name: '图书馆', campus: '东丽校区', area: '北区', simulated: true },
+  { id: 'south', name: '明德馆', campus: '东丽校区', area: '南区', simulated: false },
+  { id: 'ninghe', name: '操场南门', campus: '宁河校区', area: null, simulated: true },
+]
+const now = new Date('2026-10-02T12:00:00')
 
 function validDraft() {
   return {
     ...emptyDraft(),
     title: '黑色双肩包', category: '箱包' as const, campus: '东丽校区' as const,
-    area: '北区' as const, location: '图书馆二层', occurredAt: '2026-09-29T12:00',
+    area: '北区' as const, location: '图书馆', occurredAt: '2026-09-29T12:00',
     description: '黑色背包上有一枚白色小熊徽章。', contact: '13800138000',
-    storageMethod: 'office' as const, storageLocation: '教学楼值班室', contactWindow: '工作日下午可联系',
+    storageMethod: 'office' as const, storageLocation: '明德馆', contactWindow: '工作日下午可联系',
   }
 }
 
 describe('物品表单校验', () => {
+  it('有效的地点选项通过校验，宁河不需要区域', () => {
+    expect(validateDraft(validDraft(), 'found', now, locations)).toEqual({})
+    expect(validateDraft({ ...validDraft(), campus: '宁河校区', area: '',
+      location: '操场南门', storageLocation: '操场南门' }, 'found', now, locations)).toEqual({})
+  })
+
+  it('拒绝自由文本、错误区域和跨校区保管地点', () => {
+    const draft = { ...validDraft(), location: '图书馆二层', storageLocation: '操场南门' }
+    const errors = validateDraft(draft, 'found', now, locations)
+    expect(errors.location).toBeDefined()
+    expect(errors.storageLocation).toBeDefined()
+    expect(validateDraft({ ...validDraft(), area: '南区' }, 'lost', now, locations).location).toBeDefined()
+  })
+
   it('拒绝首尾空格、未来时间和无效联系方式', () => {
     const draft = { ...validDraft(), title: '  ', contact: 'abc', occurredAt: '2026-10-03T12:00' }
     const errors = validateDraft(draft, 'lost', new Date('2026-10-02T12:00:00'))

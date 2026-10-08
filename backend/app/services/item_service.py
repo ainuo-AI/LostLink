@@ -33,6 +33,7 @@ from app.schemas.item import (
     ItemUpdate,
     RecordType,
 )
+from app.services.campus_distance import campus_distance_table
 
 if TYPE_CHECKING:
     from app.services.feature_service import MatchingService
@@ -135,6 +136,11 @@ class ItemService:
                 code="ITEM_VALIDATION_ERROR",
                 message="发生时间不能晚于当前时间",
                 status_code=422,
+            )
+        self._validate_place_selection(payload.campus, payload.area, payload.location)
+        if payload.type == RecordType.FOUND:
+            self._validate_place_selection(
+                payload.campus, None, payload.storage_location, storage=True
             )
         self._validate_images(payload.image_ids, owner_id=user.id)
 
@@ -317,6 +323,18 @@ class ItemService:
         return item
 
     @staticmethod
+    def _validate_place_selection(campus, area, name, *, storage: bool = False) -> None:
+        if not campus_distance_table().is_selection(campus, area, name, any_area=storage):
+            raise AppError(
+                code="ITEM_LOCATION_INVALID",
+                message=(
+                    "请从所选校区的保管地点选项中选择。" if storage
+                    else "请从所选校区和区域的地点选项中选择。"
+                ),
+                status_code=422,
+            )
+
+    @staticmethod
     def _validate_merged_update(
         item: ItemRecord,
         changes: dict[str, object],
@@ -338,6 +356,14 @@ class ItemService:
                 code="ITEM_VALIDATION_ERROR",
                 message="宁河校区不能设置二级区域",
                 status_code=422,
+            )
+
+        ItemService._validate_place_selection(
+            campus, area, changes.get("location", item.location)
+        )
+        if item.type == RecordType.FOUND:
+            ItemService._validate_place_selection(
+                campus, None, changes.get("storage_location", item.storage_location), storage=True
             )
 
         occurred_at = changes.get("occurred_at", item.occurred_at)

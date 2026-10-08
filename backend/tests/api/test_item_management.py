@@ -39,7 +39,7 @@ def lost_payload(**overrides: object) -> dict:
         "category": "数码",
         "title": "黑色无线耳机",
         "description": "黑色充电仓，外壳右侧有一道明显划痕。",
-        "location": "图书馆二层",
+        "location": "图书馆",
         "campus": "东丽校区",
         "area": "北区",
         "occurred_at": "2026-10-01T08:00:00Z",
@@ -176,13 +176,13 @@ def test_owner_can_edit_and_complete_lost_item_with_audit(
         f"/api/v1/items/{created['id']}",
         headers=headers,
         json={
-            "location": "图书馆三层",
+            "location": "博学楼",
             "contact": "owner@example.com",
             "contact_note": None,
         },
     )
     assert edited.status_code == 200
-    assert edited.json()["location"] == "图书馆三层"
+    assert edited.json()["location"] == "博学楼"
     assert edited.json()["contact"] == "owner@example.com"
     assert edited.json()["contact_hint"] == "联系方式已保护，请先核验物品特征。"
 
@@ -246,7 +246,7 @@ def test_found_item_can_be_marked_returned(client: TestClient) -> None:
         json=lost_payload(
             type="found",
             storage_method="office",
-            storage_location="教学楼值班室",
+            storage_location="图书馆",
             contact_window="工作日 09:00-17:00",
         ),
     )

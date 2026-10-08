@@ -18,12 +18,16 @@ import { createItem } from '../api/items'
 import { ApiError } from '../api/client'
 import { deleteUploadedImage, uploadImage } from '../api/media'
 import { useAuth } from '../stores/auth'
+import { locationOptions, isLocationSelection, useCampusLocations } from '../services/campusLocations'
 
 const props = defineProps<{ type: RecordType }>()
 const router = useRouter()
 const { clearSession } = useAuth()
 const isFound = computed(() => props.type === 'found')
 const draft = reactive<ItemDraft>(emptyDraft())
+const { choices: locations, loading: locationsLoading, error: locationsError, load: loadLocations } = useCampusLocations()
+const availableLocations = computed(() => locationOptions(locations.value, draft.campus, draft.area))
+const storageLocations = computed(() => locationOptions(locations.value, draft.campus, null, true))
 const errors = reactive<DraftErrors>({})
 const loading = ref(true)
 const submitting = ref(false)
@@ -42,10 +46,12 @@ const fieldOrder: DraftField[] = ['title', 'category', 'description', 'imageIds'
 async function hydrate() {
   loading.value = true
   storageWarning.value = ''
+  await loadLocations()
   try {
     const saved = await loadDraft(props.type)
     if (saved) Object.assign(draft, emptyDraft(), saved)
     if (draft.campus !== '东丽校区') draft.area = ''
+    clearInvalidLocations()
   } catch (error) {
     storageWarning.value = error instanceof Error ? error.message : '草稿读取失败。'
   } finally {
@@ -58,6 +64,13 @@ watch(() => draft.campus, (campus) => {
   // 宁河校区不分南北区，切换校区时清除旧的东丽区域值。
   if (campus !== '东丽校区') draft.area = ''
 })
+
+function clearInvalidLocations() {
+  if (!locations.value.length) return
+  if (!isLocationSelection(locations.value, draft.campus, draft.area, draft.location)) draft.location = ''
+  if (!isLocationSelection(locations.value, draft.campus, null, draft.storageLocation, true)) draft.storageLocation = ''
+}
+watch([locations, () => draft.campus, () => draft.area], clearInvalidLocations)
 
 // 深度监听表单字段并自动保存草稿；重置和提交成功时暂时关闭自动保存。
 watch(draft, () => {
@@ -100,7 +113,7 @@ async function focusFirstError() {
 async function submit() {
   if (submitting.value) return
   Object.keys(errors).forEach((key) => delete errors[key as DraftField])
-  Object.assign(errors, validateDraft(draft, props.type))
+  Object.assign(errors, validateDraft(draft, props.type, new Date(), locations.value))
   if (Object.keys(errors).length) { await focusFirstError(); return }
   const localImages: Array<{ id: string; blob: Blob }> = []
   try {
@@ -231,10 +244,12 @@ function updateImages(ids: string[]) { draft.imageIds = ids; delete errors.image
         <!-- 地点和时间区根据业务类型自动切换“丢失”或“拾获”文案。 -->
         <section class="entry-section" aria-labelledby="entry-location-title">
           <div class="entry-section-heading"><span>02</span><div><h2 id="entry-location-title">{{ isFound ? '拾获信息' : '丢失信息' }}</h2><p>请填写尽可能准确的校区、地点和时间。</p></div></div>
+          <p v-if="locationsLoading" class="profile-hint" role="status">正在加载地点选项…</p>
+          <div v-if="locationsError" class="form-alert" role="alert"><p>{{ locationsError }}</p><button class="secondary-button" type="button" @click="loadLocations">重新加载地点</button></div>
           <div class="entry-fields">
             <div class="entry-field"><label for="entry-campus">{{ isFound ? '拾获校区' : '丢失校区' }} <span>*</span></label><select id="entry-campus" v-model="draft.campus" :aria-invalid="Boolean(errors.campus)"><option value="">请选择校区</option><option value="东丽校区">东丽校区</option><option value="宁河校区">宁河校区</option></select><p v-if="errors.campus" class="field-error" role="alert">{{ errors.campus }}</p></div>
             <div v-if="draft.campus === '东丽校区'" class="entry-field"><label for="entry-area">校区区域 <span>*</span></label><select id="entry-area" v-model="draft.area" :aria-invalid="Boolean(errors.area)"><option value="">请选择区域</option><option value="北区">北区</option><option value="南区">南区</option></select><p v-if="errors.area" class="field-error" role="alert">{{ errors.area }}</p></div>
-            <div class="entry-field"><label for="entry-location">{{ isFound ? '具体拾获地点' : '具体丢失地点' }} <span>*</span></label><input id="entry-location" v-model="draft.location" maxlength="100" placeholder="例如：图书馆二层阅览区" :aria-invalid="Boolean(errors.location)" /><p v-if="errors.location" class="field-error" role="alert">{{ errors.location }}</p></div>
+            <div class="entry-field"><label for="entry-location">{{ isFound ? '具体拾获地点' : '具体丢失地点' }} <span>*</span></label><select id="entry-location" v-model="draft.location" :disabled="locationsLoading || Boolean(locationsError) || !draft.campus || (draft.campus === '东丽校区' && !draft.area)" :aria-invalid="Boolean(errors.location)"><option value="">{{ !draft.campus ? '请先选择校区' : draft.campus === '东丽校区' && !draft.area ? '请先选择区域' : '请选择地点' }}</option><option v-for="place in availableLocations" :key="place.id" :value="place.name">{{ place.name }}{{ place.simulated ? '（模拟地点）' : '' }}</option></select><p v-if="errors.location" class="field-error" role="alert">{{ errors.location }}</p></div>
             <div class="entry-field"><label for="entry-occurredAt">{{ isFound ? '拾获时间' : '丢失时间' }} <span>*</span></label><input id="entry-occurredAt" v-model="draft.occurredAt" type="datetime-local" :aria-invalid="Boolean(errors.occurredAt)" /><p v-if="errors.occurredAt" class="field-error" role="alert">{{ errors.occurredAt }}</p></div>
           </div>
         </section>
@@ -245,7 +260,7 @@ function updateImages(ids: string[]) { draft.imageIds = ids; delete errors.image
           <div class="entry-fields">
             <template v-if="isFound">
               <div class="entry-field"><label for="entry-storageMethod">保管方式 <span>*</span></label><select id="entry-storageMethod" v-model="draft.storageMethod" :aria-invalid="Boolean(errors.storageMethod)"><option value="">请选择方式</option><option value="self">本人暂存</option><option value="office">交至失物招领处</option></select><p v-if="errors.storageMethod" class="field-error" role="alert">{{ errors.storageMethod }}</p></div>
-              <div v-if="draft.storageMethod" class="entry-field"><label for="entry-storageLocation">{{ draft.storageMethod === 'self' ? '暂存地点' : '交存地点' }} <span>*</span></label><input id="entry-storageLocation" v-model="draft.storageLocation" maxlength="100" placeholder="例如：教学楼值班室" :aria-invalid="Boolean(errors.storageLocation)" /><p v-if="errors.storageLocation" class="field-error" role="alert">{{ errors.storageLocation }}</p></div>
+              <div v-if="draft.storageMethod" class="entry-field"><label for="entry-storageLocation">{{ draft.storageMethod === 'self' ? '暂存地点' : '交存地点' }} <span>*</span></label><select id="entry-storageLocation" v-model="draft.storageLocation" :disabled="locationsLoading || Boolean(locationsError) || !draft.campus" :aria-invalid="Boolean(errors.storageLocation)"><option value="">{{ draft.campus ? '请选择保管地点' : '请先选择校区' }}</option><option v-for="place in storageLocations" :key="place.id" :value="place.name">{{ place.area ? `${place.area} · ` : '' }}{{ place.name }}{{ place.simulated ? '（模拟地点）' : '' }}</option></select><p v-if="errors.storageLocation" class="field-error" role="alert">{{ errors.storageLocation }}</p></div>
             </template>
             <div class="entry-field"><label for="entry-contact">手机号或邮箱 <span>*</span></label><input id="entry-contact" v-model="draft.contact" autocomplete="off" placeholder="仅用于后续核实，本地演示不公开原文" :aria-invalid="Boolean(errors.contact)" /><p v-if="errors.contact" class="field-error" role="alert">{{ errors.contact }}</p></div>
             <div v-if="isFound" class="entry-field"><label for="entry-contactWindow">可联系时间或范围 <span>*</span></label><input id="entry-contactWindow" v-model="draft.contactWindow" maxlength="100" placeholder="例如：工作日 12:00–18:00" :aria-invalid="Boolean(errors.contactWindow)" /><p v-if="errors.contactWindow" class="field-error" role="alert">{{ errors.contactWindow }}</p></div>
@@ -253,7 +268,7 @@ function updateImages(ids: string[]) { draft.imageIds = ids; delete errors.image
           </div>
         </section>
         <p v-if="formError" class="form-alert" role="alert">{{ formError }}</p>
-        <div class="entry-actions"><button class="primary-button" type="submit" :disabled="submitting">{{ submitting ? '正在保存…' : isFound ? '提交登记' : '提交发布' }}</button><button class="secondary-button" type="button" :disabled="submitting" @click="reset">重置</button><button class="text-button" type="button" :disabled="submitting" @click="router.push({ name: 'home' })">取消并返回</button></div>
+        <div class="entry-actions"><button class="primary-button" type="submit" :disabled="submitting || locationsLoading || Boolean(locationsError)">{{ submitting ? '正在保存…' : isFound ? '提交登记' : '提交发布' }}</button><button class="secondary-button" type="button" :disabled="submitting" @click="reset">重置</button><button class="text-button" type="button" :disabled="submitting" @click="router.push({ name: 'home' })">取消并返回</button></div>
       </form>
     </main>
   </div>

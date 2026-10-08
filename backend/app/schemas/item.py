@@ -41,6 +41,16 @@ class ItemStatus(StrEnum):
     CLOSED = "closed"
 
 
+class CampusLocationOption(BaseModel):
+    """发布和编辑共用的校园地点选项，不返回坐标与距离矩阵。"""
+
+    id: str
+    name: str
+    campus: Campus
+    area: CampusArea | None
+    simulated: bool
+
+
 class StorageMethod(StrEnum):
     """拾物记录的保管方式。"""
 

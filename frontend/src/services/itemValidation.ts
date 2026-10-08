@@ -6,6 +6,7 @@
  */
 import type { CampusArea } from '../types/item'
 import { ITEM_CATEGORIES, type DraftErrors, type ItemDraft } from '../types/demo'
+import { isLocationSelection, type CampusLocationOption } from './campusLocations'
 
 export const MAX_IMAGES = 3
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
@@ -24,7 +25,10 @@ export function emptyDraft(): ItemDraft {
  * 一次性返回“字段名 → 错误文案”，便于页面在对应输入框附近展示错误。
  * type 为 found 时额外检查保管方式、保管地点和可联系时间。
  */
-export function validateDraft(draft: ItemDraft, type: 'lost' | 'found', now = new Date()): DraftErrors {
+export function validateDraft(
+  draft: ItemDraft, type: 'lost' | 'found', now = new Date(),
+  locations: CampusLocationOption[] = [],
+): DraftErrors {
   const errors: DraftErrors = {}
   const trimmed = (value: string) => value.trim()
   const title = trimmed(draft.title)
@@ -32,7 +36,7 @@ export function validateDraft(draft: ItemDraft, type: 'lost' | 'found', now = ne
   if (!ITEM_CATEGORIES.includes(draft.category as typeof ITEM_CATEGORIES[number])) errors.category = '请选择物品类别。'
   if (draft.campus !== '东丽校区' && draft.campus !== '宁河校区') errors.campus = '请选择校区。'
   if (draft.campus === '东丽校区' && !(['北区', '南区'] as CampusArea[]).includes(draft.area as CampusArea)) errors.area = '请选择东丽校区区域。'
-  if (trimmed(draft.location).length < 2 || trimmed(draft.location).length > 100) errors.location = '具体地点需填写 2–100 个字。'
+  if (!isLocationSelection(locations, draft.campus, draft.area, draft.location)) errors.location = '请选择当前校区和区域的地点。'
   const occurredAt = new Date(draft.occurredAt)
   if (!draft.occurredAt || Number.isNaN(occurredAt.getTime())) errors.occurredAt = '请选择有效的日期和时间。'
   else if (occurredAt.getTime() > now.getTime()) errors.occurredAt = '时间不能晚于当前时间。'
@@ -42,7 +46,7 @@ export function validateDraft(draft: ItemDraft, type: 'lost' | 'found', now = ne
   if (trimmed(draft.contactNote).length > 200) errors.contactNote = '联系说明不能超过 200 个字。'
   if (type === 'found') {
     if (draft.storageMethod !== 'self' && draft.storageMethod !== 'office') errors.storageMethod = '请选择保管方式。'
-    if (trimmed(draft.storageLocation).length < 2 || trimmed(draft.storageLocation).length > 100) errors.storageLocation = '保管地点需填写 2–100 个字。'
+    if (!isLocationSelection(locations, draft.campus, null, draft.storageLocation, true)) errors.storageLocation = '请选择当前校区的保管地点。'
     if (trimmed(draft.contactWindow).length < 2 || trimmed(draft.contactWindow).length > 100) errors.contactWindow = '请填写可联系时间或范围（2–100 个字）。'
   }
   if (draft.imageIds.length > MAX_IMAGES) errors.imageIds = '最多选择 3 张图片。'
