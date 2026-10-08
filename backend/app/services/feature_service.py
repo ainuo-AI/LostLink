@@ -12,7 +12,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from app.core.errors import AppError
-from app.integrations.multimodal_matching import MultimodalMatcher
+from app.integrations.multimodal_matching import CandidateAssessment, MultimodalMatcher
 from app.repositories.auth_repository import AuthRepository, UserRecord
 from app.repositories.feature_repository import (
     AuditRecord,
@@ -268,6 +268,7 @@ class MatchingService:
         )
         for candidate, score, dimensions in ranked:
             if assessment := assessments.get(candidate.id):
+                score, dimensions = self._score(item, candidate, assessment)
                 weight = self.ai_matcher.settings.matching_ai_weight
                 score = round(score * (1 - weight) + assessment.score * weight)
                 dimensions.append({
@@ -275,6 +276,17 @@ class MatchingService:
                     "score": assessment.score,
                     "explanation": assessment.explanation,
                 })
+            else:
+                if self.ai_matcher is None or not self.ai_matcher.settings.matching_ai_enabled:
+                    reason = "大模型匹配未启用"
+                elif self.ai_matcher.failure_reason:
+                    reason = self.ai_matcher.failure_reason
+                else:
+                    reason = (
+                        "当前候选未进入模型比较批次"
+                        f"（每次最多 {self.ai_matcher.settings.matching_ai_max_candidates} 条）"
+                    )
+                score, dimensions = self._score(item, candidate, text_unavailable_reason=reason)
             if score < 55:
                 continue
             if item.owner_id is not None:
@@ -363,25 +375,26 @@ class MatchingService:
         )
 
     @staticmethod
-    def _score(source: ItemRecord, candidate: ItemRecord) -> tuple[int, list[dict[str, object]]]:
+    def _score(
+        source: ItemRecord, candidate: ItemRecord,
+        assessment: CandidateAssessment | None = None,
+        *, text_unavailable_reason: str = "大模型尚未评估文本语义",
+    ) -> tuple[int, list[dict[str, object]]]:
         category = 100 if source.category.casefold() == candidate.category.casefold() else 20
         location = campus_distance_table().assess(source, candidate)
         hours = abs((source.occurred_at - candidate.occurred_at).total_seconds()) / 3600
         time_score = max(0, round(100 - min(hours, 168) / 168 * 100))
-        source_words = set(source.title.casefold()) | set(source.description.casefold())
-        candidate_words = set(candidate.title.casefold()) | set(candidate.description.casefold())
-        text = round(
-            100 * len(source_words & candidate_words) / max(1, len(source_words | candidate_words))
-        )
+        text = assessment.text_score if assessment is not None else None
         # 用实地距离替换原来的校区20%+区域15%；缺坐标时不伪造距离分。
-        weighted = category * 0.35 + time_score * 0.20 + text * 0.10
+        weighted = category * 0.35 + time_score * 0.20
+        if text is not None:
+            weighted += text * 0.10
         score = round(
             weighted + location.score * 0.35 if location.score is not None else weighted
         )
         values = [
             ("类别", category, 35),
             ("时间", time_score, 20),
-            ("文本", text, 10),
         ]
         return score, [
             {
@@ -394,6 +407,15 @@ class MatchingService:
             }
             for label, value, weight in values
         ] + [{
+            "label": "文本",
+            "score": text,
+            "explanation": (
+                "大模型仅比较标题和描述的语义，基础权重 10%；"
+                + assessment.text_explanation
+                if assessment is not None else
+                f"文本未评估：{text_unavailable_reason}；未计入文本分，基础权重 10%。"
+            ),
+        }, {
             "label": "地点",
             "score": location.score,
             "explanation": location.explanation + " 基础权重 35%，500 米时为 50 分。",
