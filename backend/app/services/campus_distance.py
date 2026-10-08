@@ -52,6 +52,19 @@ class CampusDistanceTable:
         self.places = data["places"]
         self.distances = data["distances_meters"]
 
+    def selectable_places(self) -> list[dict]:
+        """只公开有坐标的业务地点，不把开发占位项作为用户选项。"""
+
+        return [place for place in self.places if place["coordinates"] is not None]
+
+    def is_selection(self, campus, area, name, *, any_area: bool = False) -> bool:
+        return any(
+            place["campus"] == campus
+            and (any_area or place["area"] == area)
+            and place["name"] == name
+            for place in self.selectable_places()
+        )
+
     def resolve(self, item: ItemRecord) -> dict | None:
         text = normalize_location(item.location)
         for prefix in ["中国民航大学", item.campus.value, item.area.value if item.area else ""]:

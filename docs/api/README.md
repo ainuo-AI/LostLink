@@ -67,6 +67,12 @@
 
 发布字段包括类型、类别、标题、描述、校区、区域、地点、带时区发生时间、联系方式和公开联系说明。拾物记录还必须提供 `storage_method=self|office`、保管地点和可联系时间。完整联系方式属于私密字段，只在发布者/管理员视图返回；公开响应仅含 `contact_hint`。
 
+`GET /api/v1/locations` 公开返回 21 个地点选项（`id/name/campus/area/simulated`）。
+发布及编辑的 `location` 必须使用当前校区和区域下的标准 `name`；
+拾物 `storage_location` 必须是同校区的标准地点，可跨区域。
+任意文本或错误范围返回 `422 / ITEM_LOCATION_INVALID`，详情见
+[校园距离匹配与地点选项](campus-distance-matching.md)。
+
 更新接口通过请求字段是否出现区分“不修改”和“显式设为 null”。图片先通过 `POST /api/v1/uploads/images` 上传，再把最多三个 `image_ids` 传给发布或更新接口；公开响应的 `image_urls` 可直接用于展示。
 
 状态规则：

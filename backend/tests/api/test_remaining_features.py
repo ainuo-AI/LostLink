@@ -19,7 +19,7 @@ def found_payload(**overrides: object) -> dict:
         title="拾到黑色无线耳机",
         description="黑色充电仓右侧有一道划痕，暂存在值班室等待核验。",
         storage_method="office",
-        storage_location="图书馆值班室",
+        storage_location="图书馆",
         contact_window="工作日 09:00-17:00",
     )
     payload.update(overrides)

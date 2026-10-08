@@ -147,8 +147,8 @@ def test_cross_campus_distance_is_not_confused_with_same_named_gate(item_reposit
 
 
 @pytest.mark.parametrize("lost_location,found_location,score,meters,simulated", [
-    ("北教一二层", "北教二302", 89, 87, False),
-    ("图书馆二层", "博学楼302", 94, 47, True),
+    ("北教1", "北教2", 89, 87, False),
+    ("图书馆", "博学楼", 94, 47, True),
 ])
 def test_published_match_explains_distance_in_api_response(
     client, lost_location, found_location, score, meters, simulated,

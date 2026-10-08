@@ -10,6 +10,7 @@ import { ITEM_CATEGORIES } from '../types/demo'
 import type { ApiOwnerItem, ItemStatus, RecordType, UpdateItemPayload } from '../types/item'
 import { cacheItemForNavigation } from '../stores/itemNavigation'
 import { useAuth } from '../stores/auth'
+import { locationOptions, isLocationSelection, useCampusLocations } from '../services/campusLocations'
 
 const PAGE_SIZE = 6
 const router = useRouter()
@@ -25,6 +26,8 @@ const actionError = ref('')
 const actionId = ref<number | null>(null)
 const editing = ref<ApiOwnerItem | null>(null)
 const editForm = reactive({ title: '', category: '', description: '', location: '', contact: '', contactNote: '' })
+const { choices: locations, loading: locationsLoading, error: locationsError, load: loadLocations } = useCampusLocations()
+const editLocations = computed(() => editing.value ? locationOptions(locations.value, editing.value.campus, editing.value.area) : [])
 
 const statusLabels: Record<ItemStatus, string> = {
   active: '进行中', recovered: '已找回', returned: '已归还', closed: '已关闭',
@@ -68,6 +71,7 @@ watch([selectedType, status], () => {
 })
 
 onMounted(async () => {
+  void loadLocations()
   await auth.restore()
   await loadRecords()
 })
@@ -100,8 +104,12 @@ function startEdit(item: ApiOwnerItem) {
 
 async function saveEdit() {
   if (!editing.value || actionId.value !== null) return
-  if (editForm.title.trim().length < 2 || editForm.description.trim().length < 10 || editForm.location.trim().length < 2) {
-    actionError.value = '请检查名称、描述和地点的最小长度。'
+  if (editForm.title.trim().length < 2 || editForm.description.trim().length < 10) {
+    actionError.value = '请检查名称和描述的最小长度。'
+    return
+  }
+  if (!isLocationSelection(locations.value, editing.value.campus, editing.value.area, editForm.location)) {
+    actionError.value = '请选择当前校区和区域的地点。'
     return
   }
   const payload: UpdateItemPayload = {
@@ -217,12 +225,14 @@ async function logout() {
             <label>名称<input v-model="editForm.title" maxlength="60" /></label>
             <label>类别<select v-model="editForm.category"><option v-for="category in ITEM_CATEGORIES" :key="category">{{ category }}</option></select></label>
             <label class="full">特征描述<textarea v-model="editForm.description" rows="4" maxlength="500"></textarea></label>
-            <label>地点<input v-model="editForm.location" maxlength="100" /></label>
+            <label>地点<select v-model="editForm.location" :disabled="locationsLoading || Boolean(locationsError)"><option value="">请选择地点</option><option v-for="place in editLocations" :key="place.id" :value="place.name">{{ place.name }}{{ place.simulated ? '（模拟地点）' : '' }}</option></select></label>
             <label>联系方式<input v-model="editForm.contact" /></label>
             <label class="full">联系说明<textarea v-model="editForm.contactNote" rows="2" maxlength="200"></textarea></label>
           </div>
+          <p v-if="locationsLoading" class="profile-hint" role="status">正在加载地点选项…</p>
+          <div v-if="locationsError" class="form-alert" role="alert"><p>{{ locationsError }}</p><button class="secondary-button" type="button" @click="loadLocations">重新加载地点</button></div>
           <p v-if="actionError" class="form-alert" role="alert">{{ actionError }}</p>
-          <div class="record-actions"><button class="primary-button" type="button" :disabled="actionId !== null" @click="saveEdit">保存</button><button class="secondary-button" type="button" :disabled="actionId !== null" @click="editing = null">取消</button></div>
+          <div class="record-actions"><button class="primary-button" type="button" :disabled="actionId !== null || locationsLoading || Boolean(locationsError)" @click="saveEdit">保存</button><button class="secondary-button" type="button" :disabled="actionId !== null" @click="editing = null">取消</button></div>
         </section>
       </div>
     </main>

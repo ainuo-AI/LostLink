@@ -78,7 +78,7 @@ describe('authenticated item api', () => {
     await createItem({
       type: 'found', category: '数码', title: '白色无线耳机', description: '白色充电仓，外壳有贴纸。',
       location: '操场南门', campus: '宁河校区', area: null, occurred_at: '2026-09-30T08:30:00Z',
-      contact: '13800000000', contact_note: null, storage_method: 'self', storage_location: '宿舍值班室',
+      contact: '13800000000', contact_note: null, storage_method: 'self', storage_location: '第二食堂',
       contact_window: '工作日中午', image_ids: [],
     })
     await fetchMyItems({ type: 'found', status: 'active', page: 1, pageSize: 6 })
