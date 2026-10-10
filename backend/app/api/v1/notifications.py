@@ -53,6 +53,6 @@ def submit_match_feedback(
     user: Annotated[UserRead, Depends(get_current_user)],
     service: Annotated[MatchingService, Depends(get_matching_service)],
 ) -> MatchNotificationRead:
-    """确认或拒绝尚未处理的候选匹配。"""
+    """拒绝尚未处理的候选匹配，并记录原因。"""
 
     return service.feedback(match_id, payload, user)

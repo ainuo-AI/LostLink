@@ -59,6 +59,11 @@ export async function fetchItems(
   return requestJson<ApiItemListResponse>(`/api/v1/items?${params.toString()}`, { signal })
 }
 
+/** 读取指定记录的最新公开详情，包括已找回、已归还等终态。 */
+export function fetchItem(itemId: number, signal?: AbortSignal): Promise<ApiItem> {
+  return requestJson<ApiItem>(`/api/v1/items/${itemId}`, { signal })
+}
+
 const jsonHeaders = { 'Content-Type': 'application/json' }
 
 /** 发布一条真实记录；所有者和初始状态由后端根据当前会话设置。 */
@@ -158,7 +163,8 @@ export function toLostFoundItem(item: ApiItem): LostFoundItem {
     status: item.status,
     icon: visual.icon,
     color: visual.color,
-    contactHint: item.contact_hint,
+    contact: item.contact,
+    contactNote: item.contact_note,
     imageUrls: (item.image_urls ?? []).map(resolveApiUrl),
   }
 }

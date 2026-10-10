@@ -48,6 +48,8 @@ export interface LocalItemRecord {
 
 /** 匹配详情左右两侧共用的物品展示结构。 */
 export interface MatchItem {
+  contact: string | null
+  contactNote: string | null
   title: string
   category: string
   description: string

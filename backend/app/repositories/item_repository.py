@@ -359,6 +359,8 @@ class SqlAlchemyItemRepository:
             occurred_at=occurred_at,
             status=item.status,
             contact_hint=item.contact_hint,
+            contact=item.contact,
+            contact_note=item.contact_note,
         )
 
     @classmethod
@@ -447,8 +449,8 @@ class InMemoryItemRepository:
                 occurred_at=item.occurred_at,
                 status=item.status,
                 contact_hint=item.contact_hint,
-                contact=None,
-                contact_note=None,
+                contact=item.contact,
+                contact_note=item.contact_note,
                 storage_method=None,
                 storage_location=None,
                 contact_window=None,
@@ -604,6 +606,8 @@ class InMemoryItemRepository:
             occurred_at=item.occurred_at,
             status=item.status,
             contact_hint=item.contact_hint,
+            contact=item.contact,
+            contact_note=item.contact_note,
         )
 
     @staticmethod

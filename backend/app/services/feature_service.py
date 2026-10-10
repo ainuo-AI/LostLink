@@ -436,6 +436,8 @@ class MatchingService:
             occurred_at=item.occurred_at,
             status=item.status,
             contact_hint=item.contact_hint,
+            contact=item.contact,
+            contact_note=item.contact_note,
             image_urls=[
                 f"/api/v1/uploads/images/{image.id}"
                 for image in self.features.list_item_images(item.id)

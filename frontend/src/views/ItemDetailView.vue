@@ -3,7 +3,7 @@
  * 物品详情页面
  *
  * 页面根据路由中的物品 id 读取公开数据，展示加载、错误和正常详情三种状态，
- * 并提供“举报”子流程入口。当前没有单条详情接口，因此读取逻辑集中在 itemNavigation。
+ * 并提供“举报”子流程入口。通过单条详情接口读取最新状态。
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -18,12 +18,16 @@ const router = useRouter()
 const item = ref<LostFoundItem | null>(null)
 const loading = ref(true)
 const errorMessage = ref('')
-const notice = ref('')
+const failedImageUrl = ref('')
 let activeRequest: AbortController | null = null
 
 const itemId = computed(() => Number(route.params.id))
+const photoUrl = computed(() => {
+  const url = item.value?.imageUrls[0]
+  return url && url !== failedImageUrl.value ? url : ''
+})
 
-/** 功能对应：优先读取首页缓存，刷新页面时用现有列表接口兜底查找。 */
+/** 功能对应：读取最新物品详情与联系方式。 */
 async function loadItem() {
   if (!Number.isSafeInteger(itemId.value) || itemId.value < 1) {
     item.value = null
@@ -61,20 +65,6 @@ function openReportPage() {
   void router.push({ name: 'report-submit', params: { id: item.value.id } })
 }
 
-function navigate(label: string) {
-  if (label === '首页') {
-    void router.push({ name: 'home' })
-    return
-  }
-  notice.value = `「${label}」将在后续迭代中开放`
-  window.setTimeout(() => { notice.value = '' }, 2200)
-}
-
-function showClaimNotice() {
-  notice.value = '认领功能将在后续迭代中开放'
-  window.setTimeout(() => { notice.value = '' }, 2200)
-}
-
 onMounted(() => { void loadItem() })
 watch(itemId, () => { void loadItem() })
 onBeforeUnmount(() => { activeRequest?.abort() })
@@ -82,7 +72,7 @@ onBeforeUnmount(() => { activeRequest?.abort() })
 
 <template>
   <div class="app-shell">
-    <SiteHeader active-nav="" @navigate="navigate" />
+    <SiteHeader active-nav="" />
 
     <main class="page-main">
       <button class="back-link" type="button" @click="$router.push({ name: 'home' })">
@@ -108,7 +98,15 @@ onBeforeUnmount(() => { activeRequest?.abort() })
       <!-- 功能对应：原详情弹窗升级为独立详情页，保留全部公开字段。 -->
       <article v-else-if="item" class="item-detail-page">
         <div class="detail-page-visual" :style="{ '--item-color': item.color }">
-          <span aria-hidden="true">{{ item.icon }}</span>
+          <img
+            v-if="photoUrl"
+            class="detail-page-photo"
+            :src="photoUrl"
+            :alt="`${item.title}的照片`"
+            decoding="async"
+            @error="failedImageUrl = photoUrl"
+          />
+          <span v-else aria-hidden="true">{{ item.icon }}</span>
           <p>{{ item.area ? `${item.campus} · ${item.area}` : item.campus }}</p>
         </div>
 
@@ -131,16 +129,16 @@ onBeforeUnmount(() => { activeRequest?.abort() })
               <dd>{{ item.displayTime }}</dd>
             </div>
             <div>
-              <dt>联系提示</dt>
-              <dd>{{ item.contactHint }}</dd>
+              <dt>联系方式</dt>
+              <dd>{{ item.contact || '未提供联系方式' }}</dd>
+            </div>
+            <div v-if="item.contactNote">
+              <dt>联系说明</dt>
+              <dd>{{ item.contactNote }}</dd>
             </div>
           </dl>
 
           <div class="detail-actions">
-            <button class="primary-button wide" type="button" @click="showClaimNotice">
-              {{ item.type === 'lost' ? '我可能找到了' : '这可能是我的' }}
-            </button>
-            <!-- 用户要求新增的入口：位于详情主要操作下方。 -->
             <button class="report-button wide" type="button" @click="openReportPage">
               举报
             </button>
@@ -149,8 +147,5 @@ onBeforeUnmount(() => { activeRequest?.abort() })
       </article>
     </main>
 
-    <transition name="toast">
-      <div v-if="notice" class="toast" role="status">{{ notice }}</div>
-    </transition>
   </div>
 </template>

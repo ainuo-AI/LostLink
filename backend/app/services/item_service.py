@@ -444,9 +444,9 @@ class ItemService:
 
     @staticmethod
     def _contact_hint(note: str | None) -> str:
-        """公开响应只给出联系说明，不泄露完整手机号或邮箱。"""
+        """兼容原联系提示字段；具体联系方式通过 contact 返回。"""
 
-        return note or "联系方式已保护，请先核验物品特征。"
+        return note or ""
 
     def _with_images(self, item: ItemRead) -> ItemRead:
         """把数据库图片编号转换为前端可直接访问的稳定 URL。"""
@@ -472,6 +472,8 @@ class ItemService:
             occurred_at=item.occurred_at,
             status=item.status,
             contact_hint=item.contact_hint,
+            contact=item.contact,
+            contact_note=item.contact_note,
         )
 
     @staticmethod

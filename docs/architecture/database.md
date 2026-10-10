@@ -2,7 +2,7 @@
 
 > 状态：四份 migration 已演进出认证、物品、图片、举报、通知、审计和校准结构；最新版本 `20261006_0004` 已在本地 MySQL 完成升级。完整回滚仍只允许在一次性数据库验证。
 >
-> 最后验证记录：2026-10-06。
+> 文档核对：2026-10-10；真实 MySQL migration 验证记录：2026-10-06。
 
 ## 目标
 
@@ -49,8 +49,8 @@
 | `area` | `VARCHAR(20)` | 是 | 东丽校区为北区或南区；宁河校区为空 |
 | `occurred_at` | `DATETIME(6)` | 否 | 物品丢失或拾到时间，按 UTC 解释 |
 | `status` | `VARCHAR(16)` | 否 | `active`、`recovered`、`returned` 或 `closed` |
-| `contact_hint` | `VARCHAR(255)` | 否 | 公开的联系核验提示，不保存完整联系方式 |
-| `contact` | `VARCHAR(255)` | 是 | 完整联系方式，仅向所有者或授权管理员返回；历史记录为空 |
+| `contact_hint` | `VARCHAR(255)` | 否 | 兼容旧版的联系说明字段 |
+| `contact` | `VARCHAR(255)` | 是 | 完整联系方式，在公开记录中直接展示；历史记录为空 |
 | `contact_note` | `VARCHAR(200)` | 是 | 发布者填写的公开联系与核验说明 |
 | `storage_method` | `VARCHAR(16)` | 是 | 拾物保管方式：`self` 或 `office` |
 | `storage_location` | `VARCHAR(100)` | 是 | 拾物保管地点 |
@@ -68,7 +68,7 @@
 - 类型、类别以及校区与区域组合具有辅助筛选索引。
 - 表使用 `utf8mb4` 和 `utf8mb4_0900_ai_ci`，满足中文及 emoji 存储和不区分大小写搜索。
 
-历史演示数据允许 `owner_id` 与私密字段为空；所有新发布记录由后端强制关联当前用户。完整联系方式属于个人信息，不写入日志，也不通过公开 Schema 返回。
+历史演示数据允许 `owner_id` 与联系方式等字段为空；所有新发布记录由后端强制关联当前用户。完整联系方式在公开记录中直接展示，不写入日志。
 
 ### `users`
 
@@ -92,6 +92,8 @@
 | `admin_audit_logs` | 不可变保存管理员动作、对象、理由和允许记录的结构化详情 |
 | `calibration_versions` | 保存匹配权重、评估指标以及草稿、批准、启用、拒绝和归档状态 |
 | `calibration_tasks` | 保存评估日期范围、类别、执行状态、指标和候选版本关联 |
+
+2026-10-10 的产品调整复用现有 `contact`、`contact_note`、`stored_images` 和通知字段，不需要新增 migration。匹配通知状态仍兼容历史 `confirmed`，新反馈仅允许 `rejected`；取消认领不创建认领表。
 
 上传文件二进制默认保存在 `UPLOAD_DIRECTORY`，数据库只保存相对存储键。匹配解释、审计详情、权重和指标当前以 JSON 字符串保存，Repository 负责序列化与解析，API 不暴露内部字符串格式。
 

@@ -135,7 +135,7 @@ onBeforeUnmount(() => { activeRequest?.abort() })
         <span class="success-mark" aria-hidden="true">✓</span>
         <p class="section-kicker">REPORT RECEIVED</p>
         <h1>举报已提交</h1>
-        <p>本地演示举报编号为 <strong>#{{ createdReportId }}</strong>，当前状态为“待处理”。记录已保存在当前浏览器中，未提交到后端。</p>
+        <p>举报编号为 <strong>#{{ createdReportId }}</strong>，当前状态为“待处理”。记录已提交至服务端，等待管理员核查处理。</p>
         <div class="state-actions">
           <button class="secondary-button" type="button" @click="$router.push({ name: 'item-detail', params: { id: item.id } })">
             返回物品详情
