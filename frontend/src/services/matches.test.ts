@@ -2,7 +2,7 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  decideMatch,
+  rejectMatch,
   getMatchNotification,
   listMatchNotifications,
   markAllMatchesRead,
@@ -12,7 +12,7 @@ import {
 const item = {
   id: 1, type: 'lost', category: '数码', title: '无线耳机', description: '黑色耳机盒',
   location: '图书馆', campus: '东丽校区', area: '北区', occurred_at: '2026-10-01T00:00:00Z',
-  status: 'active', contact_hint: '请核验特征', image_urls: [],
+  status: 'active', contact_hint: '请核验特征', contact: '13800000000', contact_note: '请核验特征', image_urls: [],
 }
 
 function apiMatch(id = 8, read = false, status = 'pending') {
@@ -35,9 +35,9 @@ describe('匹配通知 API', () => {
         return new Response(JSON.stringify({ items: [current], page: 1, page_size: 100, total: 1, unread: current.is_read ? 0 : 1 }))
       }
       if (path.endsWith('/read')) current = { ...current, is_read: true }
-      if (path.endsWith('/feedback')) current = {
-        ...current, is_read: true, status: 'rejected',
-        rejection_reason: '特征不符', rejection_note: '颜色不同',
+      if (path.endsWith('/feedback')) {
+        expect(JSON.parse(String(init?.body))).toEqual({ status: 'rejected', reason: '特征不符', note: '颜色不同' })
+        current = { ...current, is_read: true, status: 'rejected', rejection_reason: '特征不符', rejection_note: '颜色不同' }
       }
       expect(init?.method === 'PATCH' || !init?.method).toBe(true)
       return new Response(JSON.stringify(current))
@@ -46,9 +46,11 @@ describe('匹配通知 API', () => {
 
     const listed = await listMatchNotifications()
     expect(listed[0].score).toBe(82)
+    expect(listed[0].candidate.contact).toBe('13800000000')
+    expect(listed[0].candidate.contactNote).toBe('请核验特征')
     expect((await markMatchRead('8')).read).toBe(true)
     expect((await getMatchNotification('8'))?.status).toBe('pending')
-    const rejected = await decideMatch('8', 'rejected', '特征不符', '颜色不同')
+    const rejected = await rejectMatch('8', '特征不符', '颜色不同')
     expect(rejected.status).toBe('rejected')
     expect(rejected.rejectionReason).toBe('特征不符')
   })

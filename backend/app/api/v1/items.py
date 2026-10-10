@@ -71,7 +71,7 @@ def get_item(
     item_id: int,
     service: Annotated[ItemService, Depends(get_item_service)],
 ) -> ItemRead:
-    """返回指定记录的公开字段，不暴露联系方式和发布者字段。"""
+    """返回指定记录的公开字段和联系方式，不暴露发布者管理字段。"""
 
     return service.get_public_item(item_id)
 

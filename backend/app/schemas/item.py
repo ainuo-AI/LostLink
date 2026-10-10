@@ -103,6 +103,8 @@ class ItemRead(BaseModel):
     occurred_at: datetime
     status: ItemStatus
     contact_hint: str
+    contact: str | None = None
+    contact_note: str | None = None
     image_urls: list[str] = Field(default_factory=list)
 
 

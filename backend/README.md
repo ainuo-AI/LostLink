@@ -2,7 +2,7 @@
 
 > 状态：账号认证、物品与图片、举报、匹配通知、管理审计和校准接口均已实现；全部 migration 已在本地 MySQL 完成升级验证。
 >
-> 最后验证：2026-10-06；33 个默认测试和 3 个 MySQL 集成测试通过。
+> 最后测试：2026-10-10；95 个测试通过，3 个 MySQL 集成测试未启用。MySQL 与迁移历史验证记录：2026-10-06。
 
 后端采用 Python 3.12、FastAPI、SQLAlchemy 和 MySQL，并按照“接口层 → 服务层 → 数据访问层 → 数据模型层”组织。`GET /api/v1/items` 通过 Repository 查询 MySQL；内存 Repository 只用于不依赖数据库的快速测试。
 
@@ -85,8 +85,7 @@ $env:TEST_DATABASE_URL = $env:DATABASE_URL
 uv run pytest -m mysql
 ```
 
-代码检查和测试均应以退出码 `0` 结束。2026-10-06 的最近一次验证中，Ruff
-检查通过，33 个默认测试及 3 个显式启用的 MySQL 集成测试通过。
+代码检查和测试均应以退出码 `0` 结束。2026-10-10 Ruff 检查通过，pytest 验证为 95 个测试通过、3 个 MySQL 集成测试未启用；真实 MySQL 未在本轮重跑。2026-10-06 的 MySQL 通过记录保留为历史结果，完整验证范围见 [测试策略](../docs/development/testing.md)。
 
 ## 当前接口
 
@@ -120,13 +119,15 @@ GET /api/v1/items?keyword=耳机&type=found&campus=宁河校区&page=1&page_size
 
 | 方法与路径 | 认证 | 作用 |
 | --- | --- | --- |
-| `GET /api/v1/items/{id}` | 否 | 读取单条记录的公开详情，不返回完整联系方式和发布者编号 |
+| `GET /api/v1/items/{id}` | 否 | 读取单条记录的公开详情及联系方式，不返回发布者编号 |
 | `POST /api/v1/items` | Bearer | 发布失物或拾物，所有者固定为当前用户 |
 | `GET /api/v1/users/me/items` | Bearer | 按类型、状态和分页查询自己的记录 |
 | `PATCH /api/v1/items/{id}` | Bearer | 发布者或管理员编辑仍在进行中的记录 |
 | `PATCH /api/v1/items/{id}/status` | Bearer | 标记为已找回、已归还或已关闭，并写入状态审计 |
 
-完整联系方式只在发布响应和“我的记录”等所有者视图中返回，公开列表与公开详情仅返回 `contact_hint`。失物只能进入 `recovered` 或 `closed`，拾物只能进入 `returned` 或 `closed`；第一阶段的终态不可重复修改。
+公开列表、详情和匹配通知返回完整联系方式 `contact` 及联系说明 `contact_note`；`contact_hint` 保留为兼容字段。失物只能进入 `recovered` 或 `closed`，拾物只能进入 `returned` 或 `closed`；第一阶段的终态不可重复修改。
+
+匹配反馈仅允许拒绝，不提供认领或确认匹配操作；历史 `confirmed` 通知仍可读取。具体请求与兼容规则见 [API 文档](../docs/api/README.md)。
 
 图片通过 `POST /api/v1/uploads/images` 上传，支持 JPG、PNG 和 WebP，默认单张最多 5MB。发布或编辑请求最多传入三个属于当前用户的 `image_ids`；关联成功后公开物品响应通过 `image_urls` 返回读取地址。
 
@@ -182,5 +183,5 @@ GET /api/v1/items?keyword=耳机&type=found&campus=宁河校区&page=1&page_size
 配置接入 DeepSeek 等支持图片输入的模型。默认关闭，配置方式、降级及第一版限制见
 [图文匹配接入说明](../docs/api/multimodal-matching.md)。真实供应商联调仍待配置密钥后验证。
 
-- 校园统一身份验证、密码重置、物品删除和完整认领核验
+- 校园统一身份验证、密码重置和物品删除
 - 对象存储、异步匹配、站外通知和其他外部集成

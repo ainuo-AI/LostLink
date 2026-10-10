@@ -29,7 +29,7 @@ const filtered = computed(() => notifications.value.filter((item) => {
 const visible = computed(() => filtered.value.slice(0, visibleCount.value))
 
 function formatTime(value: string) { return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) }
-function statusText(status: MatchStatus) { return status === 'pending' ? '待处理' : status === 'confirmed' ? '已确认' : '已拒绝' }
+function statusText(status: MatchStatus) { return status === 'pending' ? '候选线索' : status === 'confirmed' ? '已处理' : '已拒绝' }
 
 async function load() {
   loading.value = true
@@ -69,11 +69,11 @@ onMounted(() => { void load() })
   <div class="app-shell">
     <SiteHeader active-nav="匹配通知" @navigate="navigate" />
     <main class="notification-main">
-      <header class="notification-heading"><div><p class="section-kicker">MATCH UPDATES</p><h1>匹配通知</h1><p>查看服务端生成的候选线索，确认或拒绝匹配建议。分数只用于排序，不代表找回概率。</p></div><div class="unread-counter"><strong>{{ unreadCount }}</strong><span>条未读</span></div></header>
+      <header class="notification-heading"><div><p class="section-kicker">MATCH UPDATES</p><h1>匹配通知</h1><p>查看服务端生成的候选线索，直接联系对方或拒绝不符的匹配建议。分数只用于排序，不代表找回概率。</p></div><div class="unread-counter"><strong>{{ unreadCount }}</strong><span>条未读</span></div></header>
       <!-- 列表面板依次处理：加载、读取失败、空数据、筛选无结果、正常列表。 -->
       <section class="notification-panel" aria-labelledby="notification-list-title">
         <div class="notification-toolbar"><div><h2 id="notification-list-title">通知列表</h2><p>已读与匹配处理状态分别记录。</p></div><button class="secondary-button" type="button" :disabled="loading || unreadCount === 0" @click="readAll">全部标为已读</button></div>
-        <div class="notification-filters"><div class="type-tabs" role="group" aria-label="已读状态"><button v-for="filter in [{ value: 'all', label: '全部' }, { value: 'unread', label: '未读' }, { value: 'read', label: '已读' }]" :key="filter.value" type="button" :class="{ active: readFilter === filter.value }" @click="readFilter = filter.value as typeof readFilter; visibleCount = 4">{{ filter.label }}</button></div><label for="match-status-filter">处理状态</label><select id="match-status-filter" v-model="statusFilter" @change="visibleCount = 4"><option value="all">全部状态</option><option value="pending">待处理</option><option value="confirmed">已确认</option><option value="rejected">已拒绝</option></select></div>
+        <div class="notification-filters"><div class="type-tabs" role="group" aria-label="已读状态"><button v-for="filter in [{ value: 'all', label: '全部' }, { value: 'unread', label: '未读' }, { value: 'read', label: '已读' }]" :key="filter.value" type="button" :class="{ active: readFilter === filter.value }" @click="readFilter = filter.value as typeof readFilter; visibleCount = 4">{{ filter.label }}</button></div><label for="match-status-filter">处理状态</label><select id="match-status-filter" v-model="statusFilter" @change="visibleCount = 4"><option value="all">全部状态</option><option value="pending">候选线索</option><option v-if="notifications.some(item => item.status === 'confirmed')" value="confirmed">已处理</option><option value="rejected">已拒绝</option></select></div>
         <p v-if="actionError" class="form-alert" role="alert">{{ actionError }}</p>
         <div v-if="loading" class="page-state notification-state" role="status"><span class="loading-spinner" aria-hidden="true"></span><p>正在读取通知…</p></div>
         <div v-else-if="errorMessage" class="page-state notification-state error-state" role="alert"><span class="state-icon" aria-hidden="true">!</span><h3>通知读取失败</h3><p>{{ errorMessage }}</p><div class="state-actions"><button class="secondary-button" type="button" @click="resetDemo">重新加载</button></div></div>

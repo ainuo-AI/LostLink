@@ -18,6 +18,8 @@ export interface ApiItem {
   occurred_at: string
   status: ItemStatus
   contact_hint: string
+  contact: string | null
+  contact_note: string | null
   image_urls?: string[]
 }
 
@@ -31,7 +33,7 @@ export interface ApiItemListResponse {
 
 export type StorageMethod = 'self' | 'office'
 
-/** 发布者视图包含管理所需的私密字段，只能由受保护接口返回。 */
+/** 发布者视图包含管理字段，只能由受保护接口返回。 */
 export interface ApiOwnerItem extends ApiItem {
   owner_id: number
   contact: string
@@ -87,6 +89,7 @@ export interface LostFoundItem {
   status: ItemStatus
   icon: string
   color: string
-  contactHint: string
+  contact: string | null
+  contactNote: string | null
   imageUrls: string[]
 }

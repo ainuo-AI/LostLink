@@ -86,7 +86,7 @@ def test_report_submission_and_admin_resolution(
     assert audits.json()["items"][0]["action"] == "report.resolve"
 
 
-def test_new_opposite_items_generate_match_and_accept_feedback(client: TestClient) -> None:
+def test_new_opposite_items_generate_match_and_allow_only_rejection(client: TestClient) -> None:
     """相反类型的新记录会生成双方通知，并允许一次性反馈。"""
 
     lost_headers, _ = authenticated_headers(client, "lost-owner")
@@ -102,17 +102,34 @@ def test_new_opposite_items_generate_match_and_accept_feedback(client: TestClien
     match = notifications.json()["items"][0]
     assert match["mine"]["id"] == lost.json()["id"]
     assert match["candidate"]["id"] == found.json()["id"]
+    assert match["candidate"]["contact"] == found.json()["contact"]
+    assert match["candidate"]["contact_note"] == found.json()["contact_note"]
     assert {dimension["label"] for dimension in match["dimensions"]} == {
         "类别", "时间", "文本", "地点",
     }
 
-    feedback = client.patch(
+    removed_confirmation = client.patch(
         f"/api/v1/matches/{match['id']}/feedback",
         headers=lost_headers,
         json={"status": "confirmed"},
     )
+    assert removed_confirmation.status_code == 422
+    unchanged = client.get(f"/api/v1/matches/{match['id']}", headers=lost_headers)
+    assert unchanged.json()["status"] == "pending"
+    missing_reason = client.patch(
+        f"/api/v1/matches/{match['id']}/feedback",
+        headers=lost_headers,
+        json={"status": "rejected"},
+    )
+    assert missing_reason.status_code == 422
+    feedback = client.patch(
+        f"/api/v1/matches/{match['id']}/feedback",
+        headers=lost_headers,
+        json={"status": "rejected", "reason": "特征不符", "note": "颜色不同"},
+    )
     assert feedback.status_code == 200
-    assert feedback.json()["status"] == "confirmed"
+    assert feedback.json()["status"] == "rejected"
+    assert feedback.json()["rejection_reason"] == "特征不符"
     assert feedback.json()["is_read"] is True
     repeated = client.patch(
         f"/api/v1/matches/{match['id']}/feedback",

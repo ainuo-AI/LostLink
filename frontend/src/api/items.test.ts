@@ -16,6 +16,8 @@ const apiItem: ApiItem = {
   occurred_at: '2026-09-30T08:30:00Z',
   status: 'active',
   contact_hint: '请描述蓝牙名称。',
+  contact: '13800000000',
+  contact_note: '请描述蓝牙名称。',
 }
 
 afterEach(() => {
@@ -98,7 +100,8 @@ describe('item display adapter', () => {
     const item = toLostFoundItem(apiItem)
 
     expect(item.area).toBe('')
-    expect(item.contactHint).toBe('请描述蓝牙名称。')
+    expect(item.contact).toBe('13800000000')
+    expect(item.contactNote).toBe('请描述蓝牙名称。')
     expect(item.icon).toBe('🎧')
     expect(item.occurredAt).toBe(apiItem.occurred_at)
   })

@@ -51,14 +51,14 @@ def lost_payload(**overrides: object) -> dict:
     return payload
 
 
-def test_public_detail_replaces_list_scan_without_exposing_private_contact(
+def test_public_detail_supports_legacy_records_without_contact(
     client: TestClient,
 ) -> None:
     response = client.get("/api/v1/items/1")
 
     assert response.status_code == 200
     assert response.json()["id"] == 1
-    assert "contact" not in response.json()
+    assert response.json()["contact"] is None
     assert "owner_id" not in response.json()
 
 
@@ -75,7 +75,7 @@ def test_create_requires_login_and_rejects_client_owner_id(client: TestClient) -
     assert forged.status_code == 422
 
 
-def test_create_and_list_my_items_keep_contact_private(client: TestClient) -> None:
+def test_create_and_list_items_display_contact(client: TestClient) -> None:
     headers, user = authenticated_headers(client)
     created = client.post("/api/v1/items", headers=headers, json=lost_payload())
 
@@ -87,8 +87,14 @@ def test_create_and_list_my_items_keep_contact_private(client: TestClient) -> No
 
     public = client.get(f"/api/v1/items/{owner_body['id']}")
     assert public.status_code == 200
-    assert "contact" not in public.json()
+    assert public.json()["contact"] == "13800000000"
+    assert public.json()["contact_note"] == "请先描述耳机保护套特征"
+    assert "owner_id" not in public.json()
     assert public.json()["contact_hint"] == "请先描述耳机保护套特征"
+
+    public_list = client.get("/api/v1/items").json()["items"]
+    listed = next(item for item in public_list if item["id"] == owner_body["id"])
+    assert listed["contact"] == "13800000000"
 
     mine = client.get(
         "/api/v1/users/me/items",
@@ -184,7 +190,7 @@ def test_owner_can_edit_and_complete_lost_item_with_audit(
     assert edited.status_code == 200
     assert edited.json()["location"] == "博学楼"
     assert edited.json()["contact"] == "owner@example.com"
-    assert edited.json()["contact_hint"] == "联系方式已保护，请先核验物品特征。"
+    assert edited.json()["contact_hint"] == ""
 
     completed = client.patch(
         f"/api/v1/items/{created['id']}/status",
@@ -202,7 +208,8 @@ def test_owner_can_edit_and_complete_lost_item_with_audit(
     public_detail = client.get(f"/api/v1/items/{created['id']}")
     assert public_detail.status_code == 200
     assert public_detail.json()["status"] == "recovered"
-    assert "contact" not in public_detail.json()
+    assert public_detail.json()["contact"] == "owner@example.com"
+    assert public_detail.json()["contact_note"] is None
 
     # 默认首页列表仍只展示 active，终态记录不会重新出现。
     public_list = client.get("/api/v1/items")

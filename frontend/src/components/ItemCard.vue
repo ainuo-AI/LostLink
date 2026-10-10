@@ -1,9 +1,16 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import type { LostFoundItem } from '../types/item'
 
-defineProps<{
+const props = defineProps<{
   item: LostFoundItem
 }>()
+
+const failedImageUrl = ref('')
+const thumbnailUrl = computed(() => {
+  const url = props.item.imageUrls[0]
+  return url && url !== failedImageUrl.value ? url : ''
+})
 
 // 卡片只负责展示数据；点击时将完整 item 传给父组件。
 defineEmits<{
@@ -15,8 +22,17 @@ defineEmits<{
   <article class="item-card" tabindex="0" @keyup.enter="$emit('open', item)">
     <button class="card-main" type="button" :aria-label="`查看 ${item.title} 详情`" @click="$emit('open', item)">
       <!-- CSS 变量 --item-color 让卡片共用布局，同时保留不同的主题色。 -->
-      <div class="item-visual" :style="{ '--item-color': item.color }">
-        <span class="item-icon" aria-hidden="true">{{ item.icon }}</span>
+      <div :class="['item-visual', { 'has-photo': thumbnailUrl }]" :style="{ '--item-color': item.color }">
+        <img
+          v-if="thumbnailUrl"
+          class="item-thumbnail"
+          :src="thumbnailUrl"
+          :alt="`${item.title}的照片`"
+          loading="lazy"
+          decoding="async"
+          @error="failedImageUrl = thumbnailUrl"
+        />
+        <span v-else class="item-icon" aria-hidden="true">{{ item.icon }}</span>
         <span class="visual-location">{{ item.area ? `${item.campus} · ${item.area}` : item.campus }}</span>
       </div>
 

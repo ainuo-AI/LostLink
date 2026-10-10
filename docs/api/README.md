@@ -6,6 +6,8 @@
 
 2026-10-07 增加可选 [OpenAI 兼容图文匹配](multimodal-matching.md)，沿用现有通知接口，并在模型评估成功的候选中增加 `AI 图文` 解释维度；默认关闭，真实供应商联调待验证。
 
+2026-10-10 更新：公开记录直接返回联系方式；取消认领和确认匹配操作，匹配反馈仅保留拒绝。物品图片继续使用已有 `image_urls` 字段，无数据库结构变更。
+
 ## 已实现接口
 
 ### 认证与当前用户
@@ -44,6 +46,8 @@
       "occurred_at": "2026-09-29T08:00:00Z",
       "status": "active",
       "contact_hint": "请描述蓝牙名称或保护套特征。",
+      "contact": "13800000000",
+      "contact_note": "请描述蓝牙名称或保护套特征。",
       "image_urls": ["/api/v1/uploads/images/12"]
     }
   ],
@@ -65,7 +69,7 @@
 | `PATCH /api/v1/items/{id}` | Bearer | 所有者或管理员编辑 active 记录；禁止修改类型、所有者和状态 |
 | `PATCH /api/v1/items/{id}/status` | Bearer | 执行终态转换并原子写入状态审计 |
 
-发布字段包括类型、类别、标题、描述、校区、区域、地点、带时区发生时间、联系方式和公开联系说明。拾物记录还必须提供 `storage_method=self|office`、保管地点和可联系时间。完整联系方式属于私密字段，只在发布者/管理员视图返回；公开响应仅含 `contact_hint`。
+发布字段包括类型、类别、标题、描述、校区、区域、地点、带时区发生时间、联系方式和公开联系说明。拾物记录还必须提供 `storage_method=self|office`、保管地点和可联系时间。公开列表、详情和匹配通知返回发布者填写的 `contact` 和 `contact_note`；没有联系方式的历史记录返回 `contact=null`。`contact_hint` 仅作为兼容字段保留。
 
 `GET /api/v1/locations` 公开返回 21 个地点选项（`id/name/campus/area/simulated`）。
 发布及编辑的 `location` 必须使用当前校区和区域下的标准 `name`；
@@ -94,7 +98,21 @@
 | `GET /api/v1/notifications` | Bearer | 查看匹配通知、状态和未读数量 |
 | `GET /api/v1/matches/{id}` | Bearer | 查看自己的候选详情和评分解释 |
 | `PATCH /api/v1/notifications/{id}/read` | Bearer | 标记通知已读 |
-| `PATCH /api/v1/matches/{id}/feedback` | Bearer | 确认或拒绝待处理候选 |
+| `PATCH /api/v1/matches/{id}/feedback` | Bearer | 拒绝待处理候选；仅接受 `status=rejected` 且原因必填 |
+
+拒绝反馈请求示例：
+
+```json
+{
+  "status": "rejected",
+  "reason": "特征不符",
+  "note": "照片中的颜色与我的物品不同"
+}
+```
+
+`reason` 去除首尾空白后必填，最多 100 字；`note` 选填，接口最多 500 字，当前前端限制为 200 字。`pending` 或 `confirmed` 请求返回 `422`；重复处理返回 `409`。已读操作不改变候选反馈状态。
+
+通知响应仍兼容历史 `confirmed`，前端显示为“已处理”；不新增此状态，也不清理历史记录。公开物品响应的 `image_urls` 为空时表示没有关联图片；前端将相对图片地址转换为后端绝对地址，首页与个人记录卡片使用第一张图片作缩略图。没有联系方式的历史记录返回 `contact=null`，前端显示“未提供联系方式”，不使用 `contact_hint` 代替具体联系方式。
 
 ### 管理端
 

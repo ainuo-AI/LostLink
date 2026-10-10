@@ -5,7 +5,6 @@ import { ApiError } from '../api/client'
 import { fetchItems, toLostFoundItem } from '../api/items'
 import ItemCard from '../components/ItemCard.vue'
 import SiteHeader from '../components/SiteHeader.vue'
-import { cacheItemForNavigation } from '../stores/itemNavigation'
 import type { Campus, CampusArea, LostFoundItem, RecordType } from '../types/item'
 
 const PAGE_SIZE = 6
@@ -140,8 +139,6 @@ function changePage(page: number) {
 
 /** 功能对应：首页物品卡片点击后进入独立详情页。 */
 function openItem(item: LostFoundItem) {
-  // 纯前端实现：先缓存用户点中的卡片，详情页无需新增后端接口即可立即展示。
-  cacheItemForNavigation(item)
   void router.push({ name: 'item-detail', params: { id: item.id } })
 }
 

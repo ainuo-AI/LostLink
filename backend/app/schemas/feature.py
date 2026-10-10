@@ -6,6 +6,7 @@ Repository 中解析为明确字段，避免前端依赖内部存储格式。
 
 from datetime import date, datetime
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -80,7 +81,7 @@ class ReportListResponse(BaseModel):
 
 
 class MatchStatus(StrEnum):
-    """候选匹配等待确认、已确认或已拒绝的状态。"""
+    """候选匹配状态；confirmed 仅保留用于读取历史记录。"""
 
     PENDING = "pending"
     CONFIRMED = "confirmed"
@@ -123,18 +124,16 @@ class MatchNotificationListResponse(BaseModel):
 
 
 class MatchFeedback(BaseModel):
-    """用户对候选匹配提交确认或拒绝反馈。"""
+    """用户拒绝候选匹配；不再接受确认匹配请求。"""
 
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
-    status: MatchStatus
+    status: Literal[MatchStatus.REJECTED]
     reason: str | None = Field(default=None, max_length=100)
     note: str | None = Field(default=None, max_length=500)
 
     @model_validator(mode="after")
     def validate_decision(self) -> "MatchFeedback":
-        if self.status == MatchStatus.PENDING:
-            raise ValueError("反馈必须是 confirmed 或 rejected")
-        if self.status == MatchStatus.REJECTED and not self.reason:
+        if not self.reason:
             raise ValueError("拒绝候选时必须填写原因")
         return self
 

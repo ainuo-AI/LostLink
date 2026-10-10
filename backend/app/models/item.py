@@ -59,7 +59,7 @@ class Item(Base):
     occurred_at: Mapped[datetime] = mapped_column(DATETIME(fsp=6), nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="active")
     contact_hint: Mapped[str] = mapped_column(String(255), nullable=False)
-    # 完整联系方式仅供发布者管理记录使用，不进入公开 ItemRead Schema。
+    # 发布者填写的联系方式直接展示在公开记录中；历史记录可能为空。
     contact: Mapped[str | None] = mapped_column(String(255), nullable=True)
     contact_note: Mapped[str | None] = mapped_column(String(200), nullable=True)
     # 下列字段只适用于 found；历史数据和 lost 记录保持为空。

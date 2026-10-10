@@ -8,7 +8,6 @@ import { ApiError } from '../api/client'
 import { fetchMyItems, toLostFoundItem, updateItem, updateItemStatus } from '../api/items'
 import { ITEM_CATEGORIES } from '../types/demo'
 import type { ApiOwnerItem, ItemStatus, RecordType, UpdateItemPayload } from '../types/item'
-import { cacheItemForNavigation } from '../stores/itemNavigation'
 import { useAuth } from '../stores/auth'
 import { locationOptions, isLocationSelection, useCampusLocations } from '../services/campusLocations'
 
@@ -77,8 +76,6 @@ onMounted(async () => {
 })
 
 function openItem(item: ApiOwnerItem) {
-  const displayItem = toLostFoundItem(item)
-  cacheItemForNavigation(displayItem)
   void router.push({ name: 'item-detail', params: { id: item.id } })
 }
 

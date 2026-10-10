@@ -19,6 +19,8 @@ export const profileDemoItems = Array.from({ length: 16 }, (_, index) => {
     occurred_at: '2026-09-30T08:30:00Z',
     status: (isLost ? lostStatuses : foundStatuses)[index % 8],
     contact_hint: '开发演示，无真实联系人。',
+    contact: null,
+    contact_note: null,
   }
   return toLostFoundItem(item)
 })

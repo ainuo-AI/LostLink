@@ -38,6 +38,8 @@ const categoryIcons: Record<string, string> = {
 /** 把公开物品响应转换为通知详情已有的对比卡片结构。 */
 function toMatchItem(item: ApiItem): MatchItem {
   return {
+    contact: item.contact,
+    contactNote: item.contact_note,
     title: item.title,
     category: item.category,
     description: item.description,
@@ -104,10 +106,9 @@ export async function markAllMatchesRead(): Promise<void> {
   await Promise.all(matches.filter(item => !item.read).map(item => markMatchRead(item.id)))
 }
 
-/** 保存确认或拒绝反馈；重复处理由后端状态机拒绝。 */
-export async function decideMatch(
+/** 保存拒绝反馈；重复处理由后端状态机拒绝。 */
+export async function rejectMatch(
   id: string,
-  decision: Exclude<MatchStatus, 'pending'>,
   reason = '',
   note = '',
 ): Promise<MatchNotification> {
@@ -117,7 +118,7 @@ export async function decideMatch(
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        status: decision,
+        status: 'rejected',
         reason: reason.trim() || null,
         note: note.trim() || null,
       }),
