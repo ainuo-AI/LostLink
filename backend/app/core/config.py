@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     matching_ai_base_url: AnyHttpUrl | None = None
     matching_ai_api_key: SecretStr = SecretStr("")
     matching_ai_model: str = ""
-    matching_ai_timeout_seconds: float = Field(default=10, ge=1, le=60)
+    matching_ai_timeout_seconds: float = Field(default=30, ge=1, le=60)
     matching_ai_max_candidates: int = Field(default=5, ge=1, le=10)
     matching_ai_weight: float = Field(default=0.6, ge=0, le=1)
     matching_ai_max_image_bytes: int = Field(default=5 * 1024 * 1024, ge=1024, le=20 * 1024 * 1024)

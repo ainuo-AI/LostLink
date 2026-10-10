@@ -133,7 +133,7 @@ def test_real_distance_changes_ranking_with_same_other_features(item_repository)
 def test_missing_coordinates_do_not_receive_geographic_bonus(item_repository):
     source = replace(item_repository.get_by_id(1), location="未登记建筑")
     score, dimensions = MatchingService._score(source, source)
-    assert score == 65  # 其余维度满分，缺少坐标的35%不补成“同校区满分”。
+    assert score == 55  # 类别35%+时间20%；缺少坐标和模型文本分时不补分。
     assert dimensions[-1]["score"] is None
     assert "未能唯一定位" in dimensions[-1]["explanation"]
 
