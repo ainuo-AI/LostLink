@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 // 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /**
  * 物品详情页面
@@ -26,6 +27,7 @@ const itemId = computed(() => Number(route.params.id))
 
 /** 功能对应：优先读取首页缓存，刷新页面时用现有列表接口兜底查找。 */
 // 文档对应：图2-2-4 物品详情；图2-3 物品管理界面；2.2.4节。
+// 设计文档对应：图3-2-3、图4-1-5、图4-2 按路由编号重新读取物品公开详情。
 async function loadItem() {
   if (!Number.isSafeInteger(itemId.value) || itemId.value < 1) {
     item.value = null
@@ -58,6 +60,7 @@ async function loadItem() {
 }
 
 /** 功能对应：详情页下方“举报”按钮进入当前物品的举报提交页。 */
+// 设计文档对应：图3-3-2 由物品详情进入举报提交路由。
 function openReportPage() {
   if (!item.value) return
   void router.push({ name: 'report-submit', params: { id: item.value.id } })
@@ -72,6 +75,7 @@ function navigate(label: string) {
   window.setTimeout(() => { notice.value = '' }, 2200)
 }
 
+// 设计文档对应：图3-2-3 认领按钮仅展示待开放提示，没有认领申请业务。
 function showClaimNotice() {
   notice.value = '认领功能将在后续迭代中开放'
   window.setTimeout(() => { notice.value = '' }, 2200)
@@ -82,6 +86,7 @@ watch(itemId, () => { void loadItem() })
 onBeforeUnmount(() => { activeRequest?.abort() })
 </script>
 
+<!-- 设计文档对应：图3-1-4 物品详情外观，包含公开字段、类别图标与举报入口。 -->
 <template>
   <div class="app-shell">
     <SiteHeader active-nav="" @navigate="navigate" />

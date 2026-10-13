@@ -1,4 +1,5 @@
 # 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """HTTP 层的依赖注入和认证守卫。
 
 路由依赖抽象 Repository，而不是自行创建数据库连接，便于测试替换和后续事务扩展。
@@ -28,6 +29,7 @@ from app.services.item_service import ItemService
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
+# 设计文档对应：图2-1 以当前请求 Session 装配物品仓储。
 def get_item_repository(
     session: Annotated[Session, Depends(get_db_session)],
 ) -> ItemRepository:
@@ -36,6 +38,7 @@ def get_item_repository(
     return SqlAlchemyItemRepository(session)
 
 
+# 设计文档对应：图2-1 以当前请求 Session 装配图片、举报、通知和审计仓储。
 def get_feature_repository(
     session: Annotated[Session, Depends(get_db_session)],
 ) -> FeatureRepository:
@@ -45,6 +48,7 @@ def get_feature_repository(
 
 
 # 以下依赖组成认证链：数据库会话 → Repository → Service → Bearer 用户。
+# 设计文档对应：图2-1 以当前请求 Session 装配用户与会话仓储。
 def get_auth_repository(
     session: Annotated[Session, Depends(get_db_session)],
 ) -> AuthRepository:
@@ -53,6 +57,7 @@ def get_auth_repository(
     return SqlAlchemyAuthRepository(session)
 
 
+# 设计文档对应：图4-2 将 AuthRepository 与认证策略注入 AuthService。
 def get_auth_service(
     repository: Annotated[AuthRepository, Depends(get_auth_repository)],
     settings: Annotated[Settings, Depends(get_settings)],
@@ -67,6 +72,7 @@ def get_auth_service(
     return AuthService(repository, policy)
 
 
+# 设计文档对应：图4-2、图4-4、表4-1 向 MediaService 注入仓储、本地图片目录与大小限制。
 def get_media_service(
     repository: Annotated[FeatureRepository, Depends(get_feature_repository)],
     settings: Annotated[Settings, Depends(get_settings)],
@@ -76,6 +82,7 @@ def get_media_service(
     return MediaService(repository, settings.upload_directory, settings.upload_max_bytes)
 
 
+# 设计文档对应：图4-2 向 ReportService 注入举报和物品访问接口。
 def get_report_service(
     features: Annotated[FeatureRepository, Depends(get_feature_repository)],
     items: Annotated[ItemRepository, Depends(get_item_repository)],
@@ -86,6 +93,7 @@ def get_report_service(
 
 
 # 文档对应：图2-2-10、图2-2-10a 的规则及可选比较对象组装；3.1节。
+# 设计文档对应：图4-2、图2-1 按 matching_ai_enabled 选择是否注入 MultimodalMatcher。
 def get_matching_service(
     features: Annotated[FeatureRepository, Depends(get_feature_repository)],
     items: Annotated[ItemRepository, Depends(get_item_repository)],
@@ -98,6 +106,7 @@ def get_matching_service(
 
 
 # 文档对应：图2-2-2、图2-2-3 调用图2-2-10；注入同一次发布使用的匹配控制对象。
+# 设计文档对应：图4-2、图4-1-7 向 ItemService 注入本次发布使用的匹配服务。
 def get_item_service(
     repository: Annotated[ItemRepository, Depends(get_item_repository)],
     features: Annotated[FeatureRepository, Depends(get_feature_repository)],
@@ -108,6 +117,7 @@ def get_item_service(
     return ItemService(repository, features, matching)
 
 
+# 设计文档对应：图4-2 向 AdminService 注入用户、物品和功能仓储。
 def get_admin_service(
     auth: Annotated[AuthRepository, Depends(get_auth_repository)],
     items: Annotated[ItemRepository, Depends(get_item_repository)],
@@ -129,6 +139,7 @@ def get_bearer_token(
 
 
 # 文档对应：图2-1 校园用户身份检查；3.1节 需要登录的业务入口。
+# 设计文档对应：图3-3-1、图3-3-2 受保护接口的服务端认证检查。
 def get_current_user(
     token: Annotated[str, Depends(get_bearer_token)],
     service: Annotated[AuthService, Depends(get_auth_service)],
@@ -139,6 +150,7 @@ def get_current_user(
 
 
 # 文档对应：图2-1 管理员角色；图2-2-9至图2-2-9c 后台授权；3.1节权限检查。
+# 设计文档对应：图3-2-9 管理接口的服务端角色检查。
 def require_admin(
     user: Annotated[UserRead, Depends(get_current_user)],
 ) -> UserRead:

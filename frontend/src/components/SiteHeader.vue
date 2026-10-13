@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 /**
  * 全站顶部导航组件
  *
@@ -40,6 +41,7 @@ const navItems = computed(() => [
 ] as const)
 </script>
 
+<!-- 设计文档对应：图3-3-1、图3-3-2 共享导航提供查询、发布、通知和个人中心入口。 -->
 <template>
   <header class="site-header">
     <div class="header-inner">

@@ -1,4 +1,5 @@
 # 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """物品查询、发布、编辑和状态闭环的业务编排层。
 
 Service 负责默认筛选、权限、跨字段规则、状态转换和敏感字段边界，再委托
@@ -66,6 +67,7 @@ class OwnedItemQuery:
 
 
 # 文档对应：图2-3 物品管理控制；表1-1 发布、查询及我的记录。
+# 设计文档对应：图2-1、图4-2 ItemService 的职责与成员关系。
 class ItemService:
     """编排公开查询和需要身份认证的记录管理规则。"""
 
@@ -82,6 +84,7 @@ class ItemService:
         self.matching_service = matching_service
 
     # 文档对应：图2-2-4 查询物品；2.2.4节 组合筛选、默认进行中及分页。
+    # 设计文档对应：图4-1-5 将公开查询条件交给仓储并组装图片元数据。
     def list_items(
         self,
         query: ItemQuery,
@@ -116,6 +119,7 @@ class ItemService:
         )
 
     # 文档对应：图2-2-4 查看详情；2.2.4节 返回公开字段和图片。
+    # 设计文档对应：图4-1-5 读取公开详情，不返回完整联系方式。
     def get_public_item(self, item_id: int) -> ItemRead:
         """读取一条公开详情，任何状态都只返回公开字段。"""
 
@@ -126,6 +130,7 @@ class ItemService:
         return self._with_images(public) if self.feature_repository else public
 
     # 文档对应：图2-2-2 发布失物；图2-2-3 登记拾物；图2-2-10 发布后形成候选；2.2.2、2.2.3节。
+    # 设计文档对应：图4-1-3、图4-1-4、图4-1-7 保存物品、关联图片，再在发布请求内同步生成候选。
     def create_item(
         self,
         payload: ItemCreate,
@@ -187,6 +192,7 @@ class ItemService:
         return self._with_images(owner) if self.feature_repository else owner
 
     # 文档对应：图2-2-5 编辑前读取本人记录；3.1节；2.2.5节 记录归属。
+    # 设计文档对应：图3-2-7 查询当前用户拥有的物品管理字段。
     def list_owned_items(
         self,
         query: OwnedItemQuery,
@@ -213,6 +219,7 @@ class ItemService:
         )
 
     # 文档对应：图2-2-5 编辑物品记录；2.2.5节 本人权限、进行中状态及字段白名单。
+    # 设计文档对应：图4-1-6、图3-2-7 检查归属和 active 状态，合并并校验最终编辑字段。
     def update_item(
         self,
         item_id: int,
@@ -292,6 +299,7 @@ class ItemService:
         return self._with_images(owner) if self.feature_repository else owner
 
     # 文档对应：图2-2-5a 结束物品记录；2.2.5节 合法终态和状态历史。
+    # 设计文档对应：图4-1-6 检查合法终态后同时更新物品状态和状态历史。
     def update_status(
         self,
         item_id: int,
@@ -332,6 +340,7 @@ class ItemService:
         require_owner_or_admin(user, item)
         return item
 
+    # 设计文档对应：图3-2-4、图3-2-7、图4-2 通过 CampusDistanceTable 校验目录中的标准地点选择。
     @staticmethod
     # 文档对应：图2-2-2、图2-2-3、图2-2-5 标准发生地点及拾物保管地点的范围校验。
     def _validate_place_selection(campus, area, name, *, storage: bool = False) -> None:
@@ -423,6 +432,7 @@ class ItemService:
             )
 
     # 文档对应：图2-2-2、图2-2-3 的图片校验；3.1节；2.2节用例业务规则 图片数量及归属边界。
+    # 设计文档对应：图4-1-9 关联前检查图片数量、上传者归属及占用状态。
     def _validate_images(
         self,
         image_ids: list[str],

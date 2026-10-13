@@ -1,4 +1,5 @@
 # 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """应用配置模块。
 
 配置统一从环境变量读取，仓库只提交不含密钥的 `.env.example`。
@@ -26,6 +27,7 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     app_env: str = "local"
     api_v1_prefix: str = "/api/v1"
+    # 设计文档对应：图4-4、表4-1 后端连接 MySQL 的环境配置。
     database_url: str = (
         "mysql+pymysql://lostlink_app:lostlink_local@127.0.0.1:3306/lostlink?charset=utf8mb4"
     )
@@ -35,10 +37,12 @@ class Settings(BaseSettings):
     auth_max_login_attempts: int = Field(default=5, ge=1, le=20)
     auth_login_lock_minutes: int = Field(default=15, ge=1, le=24 * 60)
     # 上传文件保存在应用控制的目录，数据库只记录相对存储键。
+    # 设计文档对应：图4-4、表4-1 图片写入本地文件系统的目录配置。
     upload_directory: Path = Path("var/uploads")
     upload_max_bytes: int = Field(default=5 * 1024 * 1024, ge=1024, le=20 * 1024 * 1024)
     # OpenAI 兼容的多模态匹配默认关闭，只有完整配置后才发送业务数据。
     # 文档对应：图2-2-10a 可选模型的启用、候选上限、超时和融合权重；2.2.10节配置边界。
+    # 设计文档对应：图4-4、表4-1 外部 AI 接口是可选依赖，默认关闭。
     matching_ai_enabled: bool = False
     matching_ai_base_url: AnyHttpUrl | None = None
     matching_ai_api_key: SecretStr = SecretStr("")

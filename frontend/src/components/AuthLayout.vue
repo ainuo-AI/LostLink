@@ -1,10 +1,12 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 defineProps<{
   title: string
   description: string
 }>()
 </script>
 
+<!-- 设计文档对应：图3-1-1、图3-1-2、图3-2-1 登录与注册共用的品牌、标题、说明和表单容器。 -->
 <template>
   <div class="app-shell">
     <header class="site-header">

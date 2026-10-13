@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 // 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -18,6 +19,7 @@ const total = ref(0)
 const loading = ref(false)
 const errorMessage = ref('')
 const currentPage = ref(1)
+// 设计文档对应：图3-2-2、图4-2 查询输入及列表、筛选、分页状态。
 const keywordInput = ref('')
 const keyword = ref('')
 const selectedType = ref<'all' | RecordType>('all')
@@ -48,6 +50,7 @@ let activeRequest: AbortController | null = null
 
 /** 从 FastAPI 加载当前页，并忽略已经被新查询取代的旧请求。 */
 // 文档对应：图2-2-4 物品查询；图2-3 物品管理界面；2.2.4节。
+// 设计文档对应：图4-1-5、图3-2-2 将查询条件交给物品 API，并展示加载、失败或空结果。
 async function loadItems() {
   activeRequest?.abort()
   const controller = new AbortController()
@@ -141,6 +144,7 @@ function changePage(page: number) {
 }
 
 /** 功能对应：首页物品卡片点击后进入独立详情页。 */
+// 设计文档对应：图3-3-1、图3-3-2 从首页进入公开物品详情。
 function openItem(item: LostFoundItem) {
   // 纯前端实现：先缓存用户点中的卡片，详情页无需新增后端接口即可立即展示。
   cacheItemForNavigation(item)
@@ -149,6 +153,7 @@ function openItem(item: LostFoundItem) {
 
 </script>
 
+<!-- 设计文档对应：图3-1-3 首页查询区、物品卡片及分页的外观实现。 -->
 <template>
   <div class="app-shell">
     <SiteHeader active-nav="首页" />

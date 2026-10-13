@@ -1,4 +1,5 @@
 # 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """图片、举报、匹配通知与管理后台的业务编排。
 
 各 Service 在这里执行文件校验、资源归属、状态转换和管理员审计。API 层只负责
@@ -53,6 +54,7 @@ from app.services.campus_distance import campus_distance_table
 
 
 # 文档对应：图2-2-2、图2-2-3、图2-2-4 的图片处理；表1-1 图片管理。
+# 设计文档对应：图2-1、图4-2 MediaService 的职责与成员关系。
 class MediaService:
     """校验图片内容、管理受控文件路径并维护物品关联。"""
 
@@ -71,6 +73,7 @@ class MediaService:
         self.max_bytes = max_bytes
 
     # 文档对应：图2-2-2、图2-2-3 的图片准备；3.1节；2.2节用例业务规则 图片大小和格式边界。
+    # 设计文档对应：图4-1-9 校验 MIME、签名和大小，写本地文件与 StoredImage 元数据。
     def upload(
         self, *, data: bytes, content_type: str, original_name: str, user: UserRead
     ) -> ImageRead:
@@ -116,6 +119,7 @@ class MediaService:
         return self._read(record)
 
     # 文档对应：图2-2-4 读取公开图片；3.1节 禁止访问未关联图片。
+    # 设计文档对应：图4-1-9 只定位已关联物品的公开图片文件。
     def locate(self, image_id: str) -> tuple[Path, str]:
         """仅允许公开读取已关联到物品的图片。"""
 
@@ -128,6 +132,7 @@ class MediaService:
         return path, record.content_type
 
     # 文档对应：图2-2-2、图2-2-3 的上传清理；3.1节 上传者权限检查。
+    # 设计文档对应：图4-1-9 只允许上传者清理尚未关联物品的图片。
     def delete(self, image_id: str, user: UserRead) -> None:
         """只允许上传者删除尚未关联到物品的图片。"""
 
@@ -153,6 +158,7 @@ class MediaService:
 
 
 # 文档对应：图2-3 举报处理控制；表1-1 举报与后台治理。
+# 设计文档对应：图2-1、图4-2 ReportService 的职责与成员关系。
 class ReportService:
     """处理举报提交、个人查询和管理员结案。"""
 
@@ -161,6 +167,7 @@ class ReportService:
         self.items = items
 
     # 文档对应：图2-2-8 举报物品；2.2.8节 自我举报、待处理重复及原因检查。
+    # 设计文档对应：图4-1-10 检查物品存在、非自举报及无重复 pending 举报后保存记录。
     def create(self, item_id: int, payload: ReportCreate, user: UserRead) -> ReportRead:
         item = self.items.get_by_id(item_id)
         if item is None:
@@ -185,6 +192,7 @@ class ReportService:
         )
 
     # 文档对应：图2-1 举报物品信息的本人查询；2.2.8节 只返回本人举报。
+    # 设计文档对应：图4-1-10 只查询当前用户提交的举报。
     def list_mine(self, user: UserRead, page: int, page_size: int) -> ReportListResponse:
         rows, total = self.features.list_reports(
             reporter_id=user.id, status=None, offset=(page - 1) * page_size, limit=page_size
@@ -194,6 +202,7 @@ class ReportService:
         )
 
     # 文档对应：图2-2-9 处理前查询举报；2.2.9节 管理员举报列表。
+    # 设计文档对应：图3-1-12 管理员分页查询待处理或已处理举报。
     def list_admin(
         self, status: ReportStatus | None, page: int, page_size: int
     ) -> ReportListResponse:
@@ -205,6 +214,7 @@ class ReportService:
         )
 
     # 文档对应：图2-2-9 处理举报并写审计；关联图2-2-5a 关闭内容；2.2.9节。
+    # 设计文档对应：图4-1-11 依次处理可选物品关闭、举报结案和审计；三步分别提交。
     def resolve(self, report_id: int, payload: ReportResolve, admin: UserRead) -> ReportRead:
         current = self.features.get_report(report_id)
         if current is None:
@@ -253,6 +263,7 @@ class ReportService:
 
 
 # 文档对应：图2-3 匹配控制；表1-1 匹配、站内通知与反馈。
+# 设计文档对应：图2-1、图4-2 MatchingService 的职责与成员关系。
 class MatchingService:
     """计算可解释候选分数并管理用户通知与反馈。"""
 
@@ -267,6 +278,7 @@ class MatchingService:
         self.ai_matcher = ai_matcher
 
     # 文档对应：图2-2-10 形成候选和双方通知；图2-2-10a 可选图文比较；2.2.10节。
+    # 设计文档对应：图4-1-7 预筛选和排序候选，可选模型比较，分数达阈值后保存双方去重通知。
     def generate_for_item(self, item: ItemRecord) -> None:
         """为新发布记录和候选记录的双方所有者创建去重通知。"""
 
@@ -321,6 +333,7 @@ class MatchingService:
                 )
 
     # 文档对应：图2-2-6 查询本人匹配通知；2.2.6、2.2.7节 接收人隔离、分页及未读数。
+    # 设计文档对应：图3-2-5 按接收者查询通知列表、总数及未读数。
     def list(self, user: UserRead, page: int, page_size: int) -> MatchNotificationListResponse:
         rows, total, unread = self.features.list_matches(
             recipient_id=user.id, offset=(page - 1) * page_size, limit=page_size
@@ -334,6 +347,7 @@ class MatchingService:
         )
 
     # 文档对应：图2-2-6、图2-2-7 读取候选详情；3.1节；2.2.6、2.2.7节 通知归属。
+    # 设计文档对应：图3-2-6 校验接收者归属后读取候选详情。
     def get(self, match_id: int, user: UserRead) -> MatchNotificationRead:
         row = self.features.get_match(match_id)
         if row is None or row.recipient_id != user.id:
@@ -341,6 +355,7 @@ class MatchingService:
         return self._read(row, user.id)
 
     # 文档对应：图2-2-6 标记已读；2.2.6、2.2.7节 已读状态与确认、拒绝状态分离。
+    # 设计文档对应：图3-2-5、图3-2-6 标记已读，不改变候选处理状态。
     def mark_read(self, match_id: int, user: UserRead) -> MatchNotificationRead:
         row = self.features.mark_match_read(match_id=match_id, recipient_id=user.id)
         if row is None:
@@ -348,6 +363,7 @@ class MatchingService:
         return self._read(row, user.id)
 
     # 文档对应：图2-2-7 确认或拒绝候选；2.2.6、2.2.7节 反馈归属及防止重复处理。
+    # 设计文档对应：图4-1-8 只允许接收者处理 pending 候选，并保存 confirmed/rejected。
     def feedback(
         self, match_id: int, payload: MatchFeedback, user: UserRead
     ) -> MatchNotificationRead:
@@ -393,6 +409,7 @@ class MatchingService:
         )
 
     # 文档对应：图2-2-10 规则评分；2.2.10节 权重及0至100分；2.2节用例业务规则 通知阈值的评分基础。
+    # 设计文档对应：图4-1-7 计算类别、时间、独立文本语义分和离线地点分，未评估项不重分权重。
     @staticmethod
     def _score(
         source: ItemRecord, candidate: ItemRecord,
@@ -464,6 +481,7 @@ class MatchingService:
 
 
 # 文档对应：图2-3 后台管理控制；表1-1 举报与后台治理。
+# 设计文档对应：图2-1、图4-2 AdminService 的职责与成员关系。
 class AdminService:
     """编排管理端用户、概览、审计和校准版本生命周期。"""
 
@@ -475,6 +493,7 @@ class AdminService:
         self.features = features
 
     # 文档对应：图2-2-9b 查询管理概览；2.2.9节 用户、物品、举报和通知计数。
+    # 设计文档对应：图3-1-11 组合用户、物品、举报和通知计数。
     def overview(self) -> OverviewRead:
         users, total = self.auth.list_users(keyword=None, status=None, offset=0, limit=1)
         _, restricted = self.auth.list_users(
@@ -491,6 +510,7 @@ class AdminService:
         )
 
     # 文档对应：图2-2-9a 管理前查询用户；2.2.9节 用户列表及访问状态。
+    # 设计文档对应：图3-1-13 分页查询用户及访问状态。
     def list_users(
         self, keyword: str | None, status: UserStatus | None, page: int, page_size: int
     ) -> AdminUserListResponse:
@@ -502,6 +522,7 @@ class AdminService:
         )
 
     # 文档对应：图2-2-9a 限制或恢复普通用户并写审计；2.2.9节 管理员保护。
+    # 设计文档对应：图3-1-13、图4-2 限制或恢复普通账号，保护管理员和自身，并写入审计。
     def update_user_status(
         self, user_id: int, payload: UserStatusUpdate, admin: UserRead
     ) -> UserRead:
@@ -525,6 +546,7 @@ class AdminService:
         return self._user(updated)
 
     # 文档对应：图2-2-9c 查询管理员审计；2.2.9节 操作记录和筛选。
+    # 设计文档对应：图3-1-14 按操作、对象类型和页码读取审计记录。
     def list_audits(
         self, action: str | None, object_type: str | None, page: int, page_size: int
     ) -> AuditLogListResponse:

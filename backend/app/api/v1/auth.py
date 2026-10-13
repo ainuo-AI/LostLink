@@ -1,4 +1,5 @@
 # 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """认证模块的 HTTP API 边界。
 
 路由只负责接收经过 Schema 校验的请求、注入 ``AuthService`` 并选择 HTTP
@@ -17,6 +18,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 # 文档对应：图2-1 用户注册与登录；图2-2-1a 注册请求；2.2.1节。
+# 设计文档对应：图4-1-1 图中界面到 AuthService 的 HTTP 转发入口。
 @router.post(
     "/register",
     response_model=UserRead,
@@ -33,6 +35,7 @@ def register(
 
 
 # 文档对应：图2-2-1 登录请求；2.2.1节。
+# 设计文档对应：图4-1-2 登录凭据绑定后交给 AuthService。
 @router.post("/login", response_model=TokenResponse, summary="登录并创建会话")
 def login(
     payload: LoginRequest,
@@ -44,6 +47,7 @@ def login(
 
 
 # 文档对应：图2-2-1b 退出请求；2.2.1节。
+# 设计文档对应：图3-2-7 个人中心退出请求的 HTTP 入口。
 @router.post(
     "/logout",
     status_code=status.HTTP_204_NO_CONTENT,

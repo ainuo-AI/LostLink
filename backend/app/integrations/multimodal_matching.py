@@ -1,4 +1,5 @@
 # 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """通过 OpenAI 兼容 Chat Completions 对有限候选执行图文比较。"""
 
 import base64
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 # 文档对应：图2-2-10a 响应中的独立图文分与文本语义分；2.2.10节评分格式约束。
+# 设计文档对应：图4-1-7 校验模型返回的候选编号、图文分、文本分及两种解释。
 class CandidateAssessment(BaseModel):
     """只接受明确的候选编号、排序分数和简短依据。"""
 
@@ -33,6 +35,7 @@ class AssessmentResponse(BaseModel):
 
 
 # 文档对应：图2-2-10a 可选图文比较的集成边界；表1-1 匹配与站内通知。
+# 设计文档对应：图2-1、图4-2、图4-4 MultimodalMatcher 的职责与成员关系。
 class MultimodalMatcher:
     """单次批量调用；供应商失败时返回空结果供业务层使用规则降级。"""
 
@@ -49,6 +52,7 @@ class MultimodalMatcher:
         self.failure_reason: str | None = None
 
     # 文档对应：图2-2-10a 请求、校验结果及失败降级；3.1节；2.2.10节。
+    # 设计文档对应：图4-1-7、表4-1 可选 OpenAI 兼容请求一次取得图文分及独立文本分，失败返回空集合。
     def assess(
         self, source: ItemRecord, candidates: list[ItemRecord]
     ) -> dict[int, CandidateAssessment]:
@@ -152,6 +156,7 @@ class MultimodalMatcher:
             return {}
 
     # 文档对应：图2-2-10a 整理物品描述与图片；3.1节 仅发送允许公开的字段。
+    # 设计文档对应：图4-1-7 组装候选文本与图片；提示限定文本评分仅比较标题和描述。
     def _content(
         self, source: ItemRecord, candidates: list[ItemRecord]
     ) -> list[dict[str, object]]:

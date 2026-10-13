@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 // 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /**
  * 举报提交页面
@@ -50,6 +51,7 @@ const formValid = computed(() => (
 ))
 
 /** 功能对应：举报页先读取物品摘要，用户能确认自己举报的是哪条记录。 */
+// 设计文档对应：图3-2-8、图4-2 加载待举报物品的公开摘要。
 async function loadItem() {
   if (!Number.isSafeInteger(itemId.value) || itemId.value < 1) {
     loading.value = false
@@ -77,6 +79,7 @@ async function loadItem() {
 
 /** 校验表单后提交真实举报，并展示服务端生成的举报编号。 */
 // 文档对应：图2-2-8 提交举报；图2-3 举报界面；2.2.8节。
+// 设计文档对应：图4-1-10、图3-2-8 提交原因、说明和真实性确认，展示服务端举报编号。
 async function submitReport() {
   submitted.value = true
   submitError.value = ''
@@ -108,6 +111,7 @@ onMounted(() => { void loadItem() })
 onBeforeUnmount(() => { activeRequest?.abort() })
 </script>
 
+<!-- 设计文档对应：图3-1-10 举报原因、补充说明与真实性勾选的外观。 -->
 <template>
   <div class="app-shell">
     <SiteHeader active-nav="" @navigate="navigate" />

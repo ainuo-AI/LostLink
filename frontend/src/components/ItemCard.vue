@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 import type { LostFoundItem } from '../types/item'
 
 defineProps<{
@@ -11,6 +12,7 @@ defineEmits<{
 }>()
 </script>
 
+<!-- 设计文档对应：图3-1-3、图3-2-2 首页动态物品卡片；open 事件由 HomeView 处理。 -->
 <template>
   <article class="item-card" tabindex="0" @keyup.enter="$emit('open', item)">
     <button class="card-main" type="button" :aria-label="`查看 ${item.title} 详情`" @click="$emit('open', item)">

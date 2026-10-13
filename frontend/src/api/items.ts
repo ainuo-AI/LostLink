@@ -1,4 +1,5 @@
 // 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 /** 失物与拾物 API 访问及数据转换模块。 */
 
 import type {
@@ -41,6 +42,7 @@ const fallbackVisual = { icon: '📦', color: '#5d8299' }
 
 /** 把页面筛选条件转换为后端约定的查询参数。 */
 // 文档对应：图2-2-4 查询请求的前端API适配；2.2.4节。
+// 设计文档对应：图4-1-5 列表筛选与分页参数的 HTTP 适配。
 export async function fetchItems(
   query: ItemListQuery,
   signal?: AbortSignal,
@@ -65,6 +67,7 @@ const jsonHeaders = { 'Content-Type': 'application/json' }
 
 /** 发布一条真实记录；所有者和初始状态由后端根据当前会话设置。 */
 // 文档对应：图2-2-2、图2-2-3 发布请求的前端API适配；2.2.2、2.2.3节。
+// 设计文档对应：图4-1-3、图4-1-4 失物发布与拾物登记共用 POST /items。
 export function createItem(payload: CreateItemPayload): Promise<ApiOwnerItem> {
   return requestJson<ApiOwnerItem>('/api/v1/items', {
     method: 'POST',
@@ -82,6 +85,7 @@ export interface MyItemQuery {
 
 /** 分页读取当前登录用户自己的记录和管理字段。 */
 // 文档对应：图2-2-5 本人记录查询；2.2.5节。
+// 设计文档对应：图3-2-7 查询本人记录及允许管理的字段。
 export function fetchMyItems(query: MyItemQuery): Promise<ApiOwnerItemListResponse> {
   const params = new URLSearchParams({
     page: String(query.page),
@@ -98,6 +102,7 @@ export function fetchMyItems(query: MyItemQuery): Promise<ApiOwnerItemListRespon
 
 /** 编辑仍处于 active 状态的自有记录。 */
 // 文档对应：图2-2-5 编辑请求的前端API适配；2.2.5节。
+// 设计文档对应：图4-1-6 编辑物品白名单字段。
 export function updateItem(itemId: number, payload: UpdateItemPayload): Promise<ApiOwnerItem> {
   return requestJson<ApiOwnerItem>(`/api/v1/items/${itemId}`, {
     method: 'PATCH',
@@ -108,6 +113,7 @@ export function updateItem(itemId: number, payload: UpdateItemPayload): Promise<
 
 /** 将记录变更为与类型匹配的终态并附带可选原因。 */
 // 文档对应：图2-2-5a 结束记录请求的前端API适配；2.2.5节。
+// 设计文档对应：图4-1-6 将 active 物品转换到合法终态。
 export function updateItemStatus(
   itemId: number,
   status: ItemStatus,

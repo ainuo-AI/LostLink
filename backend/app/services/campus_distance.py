@@ -1,4 +1,5 @@
 # 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """读取离线校园距离矩阵；匹配过程不调用地图接口。"""
 
 import json
@@ -33,6 +34,7 @@ def straight_line_meters(first: dict, second: dict) -> int:
 
 
 # 文档对应：图2-2-10 地点相似度：500米为50分，3000米及以上为0分。
+# 设计文档对应：图4-1-7 使用米数计算地点分，3000 米及以上取 0。
 def distance_similarity(distance_meters: int) -> int:
     if distance_meters < 0:
         raise ValueError("距离不能为负数")
@@ -49,6 +51,7 @@ class LocationAssessment:
 
 
 # 文档对应：图2-2-10 地点评分的离线目录与距离矩阵；2.3节辅助数据。
+# 设计文档对应：图2-1、图4-2 CampusDistanceTable 的职责与成员关系。
 class CampusDistanceTable:
     def __init__(self, data: dict) -> None:
         if data["coordinate_system"] != "WGS84" or data["distance_kind"] != "straight_line":
@@ -57,12 +60,14 @@ class CampusDistanceTable:
         self.distances = data["distances_meters"]
 
     # 文档对应：图2-2-2、图2-2-3 地点下拉选项的目录支撑；2.2.10节排除无坐标占位项。
+    # 设计文档对应：图3-2-4、图3-2-7 只返回有坐标的公开目录地点。
     def selectable_places(self) -> list[dict]:
         """只公开有坐标的业务地点，不把开发占位项作为用户选项。"""
 
         return [place for place in self.places if place["coordinates"] is not None]
 
     # 文档对应：图2-2-2、图2-2-3、图2-2-5 的标准地点与校区、区域校验。
+    # 设计文档对应：图3-2-4、图3-2-7 按校区、区域和标准名称校验地点；保管地点允许同校区跨区域。
     def is_selection(self, campus, area, name, *, any_area: bool = False) -> bool:
         return any(
             place["campus"] == campus
@@ -72,6 +77,7 @@ class CampusDistanceTable:
         )
 
     # 文档对应：图2-2-10 识别已有线索的地点别名和楼层；无法唯一定位时不评分。
+    # 设计文档对应：图4-1-7、图4-2 唯一解析候选地点，无法定位时保留未评估状态。
     def resolve(self, item: ItemRecord) -> dict | None:
         text = normalize_location(item.location)
         for prefix in ["中国民航大学", item.campus.value, item.area.value if item.area else ""]:
@@ -97,6 +103,7 @@ class CampusDistanceTable:
         return matches[0] if len(matches) == 1 else None
 
     # 文档对应：图2-2-10 读取米制距离并计算地点分；缺坐标与模拟地点说明见2.2.10节。
+    # 设计文档对应：图4-1-7 从离线距离矩阵读取米数、相似度与距离说明。
     def assess(self, source: ItemRecord, candidate: ItemRecord) -> LocationAssessment:
         first, second = self.resolve(source), self.resolve(candidate)
         if first is None or second is None:
@@ -116,6 +123,7 @@ class CampusDistanceTable:
         return LocationAssessment(distance_similarity(distance), distance, explanation)
 
 
+# 设计文档对应：图4-4、表4-1、图4-3 缓存读取本地 campus_distances.json，地点与距离使用 JSON 保存。
 @lru_cache(maxsize=1)
 # 文档对应：图2-2-10 读取并缓存离线距离矩阵；坐标更新后的重建要求见2.2.10节。
 def campus_distance_table() -> CampusDistanceTable:

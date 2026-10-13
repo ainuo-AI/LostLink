@@ -1,4 +1,5 @@
 # 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """物品查询与管理的数据访问边界。
 
 生产实现把筛选、计数、排序、写入和状态审计交给 MySQL；内存实现作为快速
@@ -103,6 +104,7 @@ class OwnedItemFilters:
     limit: int
 
 
+# 设计文档对应：图2-1 数据层访问接口；完整方法定义对应设计说明书 4.3.2 节。
 class ItemRepository(Protocol):
     """声明查询与管理业务需要的数据访问能力。"""
 
@@ -147,6 +149,7 @@ class ItemRepository(Protocol):
 
 
 # 文档对应：图2-3 物品实体的持久化读写。
+# 设计文档对应：图2-1 SqlAlchemyItemRepository 的职责与成员关系。
 class SqlAlchemyItemRepository:
     """使用 SQLAlchemy Session 查询和修改 MySQL 的正式仓储实现。"""
 
@@ -154,6 +157,7 @@ class SqlAlchemyItemRepository:
         self.session = session
 
     # 文档对应：图2-2-4 查询物品；2.2.4节 数据库筛选和分页。
+    # 设计文档对应：图4-1-5 组合筛选、统计总数，并按发生时间和编号倒序分页。
     def list_filtered(self, filters: ItemFilters) -> tuple[list[ItemRead], int]:
         """在数据库中完成组合筛选、稳定排序和分页。"""
 
@@ -172,6 +176,7 @@ class SqlAlchemyItemRepository:
         return [self._to_schema(row) for row in rows], total
 
     # 文档对应：图2-2-4 读取详情；图2-2-5 读取待编辑物品。
+    # 设计文档对应：图4-1-5、图4-1-6、图4-1-10、图4-1-11 读取当前物品持久化记录。
     def get_by_id(self, item_id: int) -> ItemRecord | None:
         """读取一条记录；是否允许查看由 Service 决定。"""
 
@@ -179,6 +184,7 @@ class SqlAlchemyItemRepository:
         return self._to_record(item) if item else None
 
     # 文档对应：图2-2-10 查询相反失拾类型的进行中候选；2.2.10节。
+    # 设计文档对应：图4-1-7 预筛选同校区、相反类型且 active 的候选，默认最多 50 条。
     def list_matching_candidates(self, *, source: ItemRecord, limit: int = 50) -> list[ItemRecord]:
         """预筛选相反类型候选，限制扫描数量避免发布接口无界查询。"""
 
@@ -203,6 +209,7 @@ class SqlAlchemyItemRepository:
         return {ItemStatus(status): count for status, count in rows}
 
     # 文档对应：图2-2-2、图2-2-3 保存新物品记录；2.2.2、2.2.3节。
+    # 设计文档对应：图4-1-3、图4-1-4 保存物品并提交，后续图片关联和匹配另有提交边界。
     def create(self, item: NewItem) -> ItemRecord:
         """保存新记录并刷新数据库生成的编号和时间。"""
 
@@ -229,6 +236,7 @@ class SqlAlchemyItemRepository:
         self.session.refresh(row)
         return self._to_record(row)
 
+    # 设计文档对应：图3-2-7 只返回指定发布者拥有的物品管理记录。
     def list_owned(self, filters: OwnedItemFilters) -> tuple[list[ItemOwnerRead], int]:
         """在数据库完成个人记录筛选、稳定排序和分页。"""
 
@@ -252,6 +260,7 @@ class SqlAlchemyItemRepository:
         return [self._to_owner_schema(self._to_record(row)) for row in rows], total
 
     # 文档对应：图2-2-5 保存字段修改；2.2.5节。
+    # 设计文档对应：图4-1-6 行锁及 expected_status 防止对已变化记录覆盖编辑。
     def update_fields(
         self,
         item_id: int,
@@ -276,6 +285,7 @@ class SqlAlchemyItemRepository:
         return self._to_record(row)
 
     # 文档对应：图2-2-5a 更新终态并保存状态历史；2.2.5节；3.1节。
+    # 设计文档对应：图4-1-6、图4-1-11、图4-3 行锁保护转换，同一事务更新物品并保存状态历史。
     def change_status(
         self,
         *,

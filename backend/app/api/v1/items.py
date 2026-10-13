@@ -1,4 +1,5 @@
 # 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """失物与拾物记录查询和管理接口。
 
 API 层只负责接收参数、注入当前用户并选择 HTTP 状态码；公开查询、资源归属、
@@ -29,6 +30,7 @@ router = APIRouter(prefix="/items", tags=["items"])
 
 
 # 文档对应：图2-2-4 查询物品；2.2.4节；2.2节用例业务规则 最近天数与分页输入约束。
+# 设计文档对应：图4-1-5 公开组合查询与分页入口。
 @router.get("", response_model=ItemListResponse, summary="查询失物与拾物记录")
 def list_items(
     service: Annotated[ItemService, Depends(get_item_service)],
@@ -69,6 +71,7 @@ def list_items(
 
 
 # 文档对应：图2-2-4 公开详情；2.2.4节。
+# 设计文档对应：图4-1-5 公开物品详情入口。
 @router.get("/{item_id}", response_model=ItemRead, summary="读取公开物品详情")
 def get_item(
     item_id: int,
@@ -80,6 +83,7 @@ def get_item(
 
 
 # 文档对应：图2-2-2、图2-2-3 的提交请求；图2-2-10 候选流程入口；2.2.2、2.2.3节。
+# 设计文档对应：图4-1-3、图4-1-4 共用发布入口，以 payload.type 区分失物和拾物。
 @router.post(
     "",
     response_model=ItemOwnerRead,
@@ -97,6 +101,7 @@ def create_item(
 
 
 # 文档对应：图2-2-5 编辑请求；2.2.5节。
+# 设计文档对应：图4-1-6 身份校验后转发物品字段编辑。
 @router.patch("/{item_id}", response_model=ItemOwnerRead, summary="编辑自己的物品记录")
 def update_item(
     item_id: int,
@@ -110,6 +115,7 @@ def update_item(
 
 
 # 文档对应：图2-2-5a 结束记录请求；2.2.5节。
+# 设计文档对应：图4-1-6 身份校验后转发记录终态转换。
 @router.patch(
     "/{item_id}/status",
     response_model=ItemOwnerRead,

@@ -1,3 +1,4 @@
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 /** 详情页导航数据。
  *
  * 当前后端只有列表查询接口，所以先缓存用户刚点击的卡片；若页面刷新导致缓存缺失，
@@ -31,6 +32,7 @@ function readCachedItem(itemId: number): LostFoundItem | null {
 }
 
 /** 功能对应：为详情页和举报页提供物品数据，全程只使用现有前端列表 API。 */
+// 设计文档对应：图4-1-5、图3-2-3 详情页面重新读取公开物品信息，导航缓存不作为最终状态。
 export async function loadItemForPage(
   itemId: number,
   signal?: AbortSignal,

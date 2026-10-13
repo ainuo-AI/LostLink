@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 // 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /** 登录页负责收集凭据并把成功会话交给全站认证 Store。 */
 import { computed, nextTick, ref } from 'vue'
@@ -16,6 +17,7 @@ defineProps<{
 const route = useRoute()
 const router = useRouter()
 const { login } = useAuth()
+// 设计文档对应：图3-2-1、图4-2 登录界面的账号、密码及提交状态。
 const account = ref(typeof route.query.account === 'string' ? route.query.account : '')
 const password = ref('')
 const showPassword = ref(false)
@@ -35,6 +37,7 @@ function readableError(error: unknown): string {
 }
 
 // 文档对应：图2-2-1 用户登录；图2-3 用户认证界面；2.2.1节。
+// 设计文档对应：图4-1-2、图3-3-1 提交凭据，成功后恢复 redirect 或进入个人中心。
 async function submitLogin() {
   if (submitting.value) return
   accountError.value = account.value.trim() ? '' : '请输入校园账号'
@@ -66,6 +69,7 @@ async function submitLogin() {
 }
 </script>
 
+<!-- 设计文档对应：图3-1-1、图3-2-1 登录外观；密码切换与导航命令由模板事件和 RouterLink 实现。 -->
 <template>
   <AuthLayout title="登录 LostLink" description="欢迎回来，让校园里的线索再次相连。">
     <p v-if="registered" class="auth-success-note" role="status">账号注册成功，请使用新账号登录。</p>

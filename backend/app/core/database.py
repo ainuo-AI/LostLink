@@ -1,3 +1,4 @@
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """SQLAlchemy 引擎和会话管理。
 
 应用通过短生命周期 Session 访问 MySQL；连接池会在借出连接前检查其可用性。
@@ -29,6 +30,7 @@ SessionLocal = sessionmaker(
 )
 
 
+# 设计文档对应：图2-1、图4-4、表4-1 为仓储提供短生命周期 SQLAlchemy Session，访问 MySQL。
 def get_db_session() -> Generator[Session]:
     """为一次请求提供数据库会话，并在请求结束后可靠关闭连接。"""
 

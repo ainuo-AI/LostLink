@@ -1,4 +1,5 @@
 // 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 /** 管理控制台 API 契约与访问函数。
  *
  * 所有函数都使用管理员 Bearer 会话；后端仍会再次验证角色，前端路由守卫只用于
@@ -70,17 +71,20 @@ const jsonHeaders = { 'Content-Type': 'application/json' }
 const authenticated = { authenticated: true } as const
 
 // 文档对应：图2-2-9b 管理概览请求的前端API适配；2.2.9节。
+// 设计文档对应：图3-1-11 读取管理员概览。
 export function fetchAdminOverview(): Promise<AdminOverview> {
   return requestJson('/api/v1/admin/overview', {}, authenticated)
 }
 
 // 文档对应：图2-2-9 处理前读取举报列表；2.2.9节。
+// 设计文档对应：图3-1-12 读取管理员举报列表。
 export function fetchAdminReports(status?: ReportStatus): Promise<Page<AdminReport>> {
   const query = status ? `?status=${status}` : ''
   return requestJson(`/api/v1/admin/reports${query}`, {}, authenticated)
 }
 
 // 文档对应：图2-2-9 举报结案请求的前端API适配；2.2.9节。
+// 设计文档对应：图4-1-11 提交管理员举报处理结论及理由。
 export function resolveAdminReport(
   id: number,
   status: Exclude<ReportStatus, 'pending'>,
@@ -93,6 +97,7 @@ export function resolveAdminReport(
 }
 
 // 文档对应：图2-2-9a 管理前读取用户列表；2.2.9节。
+// 设计文档对应：图3-1-13 按关键词和状态查询用户。
 export function fetchAdminUsers(keyword = '', status?: UserStatus): Promise<Page<AuthUser>> {
   const params = new URLSearchParams()
   if (keyword.trim()) params.set('keyword', keyword.trim())
@@ -101,6 +106,7 @@ export function fetchAdminUsers(keyword = '', status?: UserStatus): Promise<Page
 }
 
 // 文档对应：图2-2-9a 用户状态请求的前端API适配；2.2.9节。
+// 设计文档对应：图3-1-13、图4-2 提交用户限制或恢复操作。
 export function updateAdminUserStatus(
   id: number,
   status: UserStatus,
@@ -112,6 +118,7 @@ export function updateAdminUserStatus(
 }
 
 // 文档对应：图2-2-9c 审计请求的前端API适配；2.2.9节。
+// 设计文档对应：图3-1-14 读取管理员审计日志。
 export function fetchAuditLogs(): Promise<Page<AuditLog>> {
   return requestJson('/api/v1/admin/audit', {}, authenticated)
 }
