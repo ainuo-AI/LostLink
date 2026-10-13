@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /** 真实管理控制台。
  *
  * 该页面按当前栏目加载服务端数据，并提供举报结案、用户限制/恢复、校准任务和
@@ -50,6 +51,7 @@ function message(error: unknown): string {
 }
 
 /** 根据导航栏目只请求当前页面需要的数据。 */
+// 文档对应：图2-2-9b 管理概览；图2-2-9c 审计查询；图2-3 后台管理界面。
 async function load() {
   loading.value = true
   errorMessage.value = ''
@@ -80,6 +82,7 @@ async function load() {
 }
 
 /** 要求管理员明确输入理由后处理举报。 */
+// 文档对应：图2-2-9 管理员处理举报；2.2.9节。
 async function handleReport(report: AdminReport, status: Exclude<ReportStatus, 'pending'>) {
   const reason = window.prompt('请输入处理理由（至少 2 个字）：')?.trim()
   if (!reason || reason.length < 2) return
@@ -90,6 +93,7 @@ async function handleReport(report: AdminReport, status: Exclude<ReportStatus, '
 }
 
 /** 限制或恢复普通用户；后端会阻止修改管理员和自己的状态。 */
+// 文档对应：图2-2-9a 限制或恢复普通用户；2.2.9节。
 async function toggleUser(user: AuthUser) {
   const next: UserStatus = user.status === 'active' ? 'restricted' : 'active'
   const reason = window.prompt(`请输入${next === 'restricted' ? '限制' : '恢复'}理由：`)?.trim()
@@ -101,6 +105,7 @@ async function toggleUser(user: AuthUser) {
 }
 
 /** 创建校准任务；当前后端同步完成评估并生成 draft 候选版本。 */
+// 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 async function startCalibration() {
   if (!rangeStart.value || !rangeEnd.value) {
     errorMessage.value = '请选择完整的评估日期范围。'
@@ -117,6 +122,7 @@ async function startCalibration() {
 }
 
 /** 执行版本审批、拒绝、启用或回滚，并立即刷新版本列表。 */
+// 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 async function changeVersion(
   version: CalibrationVersion,
   action: 'approve' | 'reject' | 'activate' | 'rollback',

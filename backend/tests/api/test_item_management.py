@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """物品发布、详情、个人列表、编辑和状态闭环 API 测试。
 
 测试使用内存用户与物品仓储，重点验证 HTTP 契约、敏感字段边界、资源归属、
@@ -51,6 +52,7 @@ def lost_payload(**overrides: object) -> dict:
     return payload
 
 
+# 文档对应：图2-2-4；2.2.4节 公开详情；3.1节。
 def test_public_detail_replaces_list_scan_without_exposing_private_contact(
     client: TestClient,
 ) -> None:
@@ -62,6 +64,7 @@ def test_public_detail_replaces_list_scan_without_exposing_private_contact(
     assert "owner_id" not in response.json()
 
 
+# 文档对应：图2-2-2、图2-2-3；2.2.2、2.2.3节；3.1节 发布者由后端确定。
 def test_create_requires_login_and_rejects_client_owner_id(client: TestClient) -> None:
     unauthenticated = client.post("/api/v1/items", json=lost_payload())
     assert unauthenticated.status_code == 401
@@ -100,6 +103,7 @@ def test_create_and_list_my_items_keep_contact_private(client: TestClient) -> No
     assert mine.json()["items"][0]["contact"] == "13800000000"
 
 
+# 文档对应：图2-2-3；2.2.2、2.2.3节 拾物保管字段；2.2节用例业务规则 输入边界。
 def test_found_item_requires_complete_storage_information(client: TestClient) -> None:
     headers, _ = authenticated_headers(client)
     response = client.post(
@@ -126,6 +130,7 @@ def test_create_rejects_unknown_image_identifiers(
     assert response.json()["code"] == "IMAGE_NOT_AVAILABLE"
 
 
+# 文档对应：图2-2-2、图2-2-3；2.2节用例业务规则 发生时间不得晚于当前时间。
 def test_create_rejects_future_occurred_time(client: TestClient) -> None:
     headers, _ = authenticated_headers(client)
     response = client.post(
@@ -138,6 +143,7 @@ def test_create_rejects_future_occurred_time(client: TestClient) -> None:
     assert response.json()["code"] == "ITEM_VALIDATION_ERROR"
 
 
+# 文档对应：图2-2-5；2.2.5节；3.1节 编辑权限。
 def test_only_owner_or_admin_can_edit_record(
     client: TestClient,
     auth_repository: InMemoryAuthRepository,
@@ -165,6 +171,7 @@ def test_only_owner_or_admin_can_edit_record(
     assert updated.json()["title"] == "管理员核对后的标题"
 
 
+# 文档对应：图2-2-5、图2-2-5a；2.2.5节 编辑、结束及状态历史。
 def test_owner_can_edit_and_complete_lost_item_with_audit(
     client: TestClient,
     item_repository: InMemoryItemRepository,
@@ -224,6 +231,7 @@ def test_owner_can_edit_and_complete_lost_item_with_audit(
     assert edit_finished.json()["code"] == "ITEM_NOT_EDITABLE"
 
 
+# 文档对应：图2-2-5a；2.2.5节 失拾类型与合法终态。
 def test_status_transition_must_match_record_type(client: TestClient) -> None:
     headers, _ = authenticated_headers(client)
     created = client.post("/api/v1/items", headers=headers, json=lost_payload()).json()
@@ -238,6 +246,7 @@ def test_status_transition_must_match_record_type(client: TestClient) -> None:
     assert response.json()["code"] == "INVALID_STATUS_TRANSITION"
 
 
+# 文档对应：图2-2-5a；2.2.5节 拾物标记已归还。
 def test_found_item_can_be_marked_returned(client: TestClient) -> None:
     headers, _ = authenticated_headers(client)
     created = client.post(

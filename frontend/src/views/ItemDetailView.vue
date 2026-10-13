@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /**
  * 物品详情页面
  *
@@ -24,6 +25,7 @@ let activeRequest: AbortController | null = null
 const itemId = computed(() => Number(route.params.id))
 
 /** 功能对应：优先读取首页缓存，刷新页面时用现有列表接口兜底查找。 */
+// 文档对应：图2-2-4 物品详情；图2-3 物品管理界面；2.2.4节。
 async function loadItem() {
   if (!Number.isSafeInteger(itemId.value) || itemId.value < 1) {
     item.value = null

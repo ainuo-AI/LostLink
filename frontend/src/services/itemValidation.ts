@@ -1,3 +1,4 @@
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /**
  * 发布与登记表单的纯校验模块
  *
@@ -25,6 +26,7 @@ export function emptyDraft(): ItemDraft {
  * 一次性返回“字段名 → 错误文案”，便于页面在对应输入框附近展示错误。
  * type 为 found 时额外检查保管方式、保管地点和可联系时间。
  */
+// 文档对应：图2-2-2、图2-2-3 的输入校验；2.2节用例业务规则 标题、时间、联系方式及保管字段。
 export function validateDraft(
   draft: ItemDraft, type: 'lost' | 'found', now = new Date(),
   locations: CampusLocationOption[] = [],
@@ -54,6 +56,7 @@ export function validateDraft(
 }
 
 /** 图片规则单独校验，已有数量也计入最多 3 张的限制。 */
+// 文档对应：图2-2-2、图2-2-3 的图片选择校验；3.1节；2.2节用例业务规则 图片边界。
 export function validateImages(files: File[], existingCount: number): string | null {
   if (files.length + existingCount > MAX_IMAGES) return `最多选择 ${MAX_IMAGES} 张图片。`
   if (files.some((file) => !IMAGE_TYPES.includes(file.type))) return '仅支持 JPG、PNG、WebP 图片。'

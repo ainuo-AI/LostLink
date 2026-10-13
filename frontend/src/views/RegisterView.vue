@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 import { nextTick, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthLayout from '../components/AuthLayout.vue'
@@ -20,6 +21,7 @@ function clearError(field: keyof typeof errors) {
   submissionMessage.value = ''
 }
 
+// 文档对应：图2-2-1a 用户注册；图2-3 用户认证界面；2.2.1节。
 async function submitRegistration() {
   if (submitting.value) return
   submissionMessage.value = ''

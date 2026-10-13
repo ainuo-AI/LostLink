@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """图片、举报、匹配通知与管理后台的公开 API 契约。
 
 本模块集中定义新功能跨 HTTP 边界传输的数据结构。数据库 JSON 字符串会在
@@ -32,6 +33,7 @@ class ReportStatus(StrEnum):
     CONTENT_HIDDEN = "content_hidden"
 
 
+# 文档对应：图2-2-8 举报输入；2.2.8节 原因和说明约束。
 class ReportCreate(BaseModel):
     """用户举报一条物品记录时提交的原因和补充说明。"""
 
@@ -40,6 +42,7 @@ class ReportCreate(BaseModel):
     description: str | None = Field(default=None, max_length=500)
 
 
+# 文档对应：图2-2-9 举报处理输入；2.2.9节 结论与说明。
 class ReportResolve(BaseModel):
     """管理员处理举报时提交的结论和必填说明。"""
 
@@ -122,6 +125,7 @@ class MatchNotificationListResponse(BaseModel):
     unread: int
 
 
+# 文档对应：图2-2-7 反馈输入；2.2.6、2.2.7节 拒绝原因及有效反馈状态。
 class MatchFeedback(BaseModel):
     """用户对候选匹配提交确认或拒绝反馈。"""
 
@@ -148,6 +152,7 @@ class AdminUserListResponse(BaseModel):
     total: int
 
 
+# 文档对应：图2-2-9a 用户状态输入；2.2.9节 操作理由。
 class UserStatusUpdate(BaseModel):
     """管理员限制或恢复普通用户账号。"""
 
@@ -199,6 +204,7 @@ class CalibrationStatus(StrEnum):
     ARCHIVED = "archived"
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 class CalibrationTaskCreate(BaseModel):
     """创建一次指定日期范围的匹配校准任务。"""
 
@@ -244,6 +250,7 @@ class CalibrationVersionRead(BaseModel):
     updated_at: datetime
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 class CalibrationVersionAction(BaseModel):
     """管理员对候选版本执行审批、拒绝、启用或回滚。"""
 

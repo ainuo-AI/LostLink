@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /**
  * 发布失物与登记拾物共用表单
  *
@@ -65,6 +66,7 @@ watch(() => draft.campus, (campus) => {
   if (campus !== '东丽校区') draft.area = ''
 })
 
+// 文档对应：图2-2-2、图2-2-3 校区或区域改变后清空失效地点；2.2.10节目录规则。
 function clearInvalidLocations() {
   if (!locations.value.length) return
   if (!isLocationSelection(locations.value, draft.campus, draft.area, draft.location)) draft.location = ''
@@ -110,6 +112,7 @@ async function focusFirstError() {
  * 提交流程：字段校验 → 上传暂存图片 → 调用发布接口关联图片 → 清空本地草稿。
  * 任一步失败都会保留用户已填写内容，并显示可重试的错误信息。
  */
+// 文档对应：图2-2-2、图2-2-3 的共用提交；图2-3 物品管理界面；2.2.2、2.2.3节。
 async function submit() {
   if (submitting.value) return
   Object.keys(errors).forEach((key) => delete errors[key as DraftField])

@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """物品列表接口集成测试。"""
 
 from fastapi.testclient import TestClient
@@ -7,6 +8,7 @@ from app.api.dependencies import get_item_repository
 from app.repositories.item_repository import ItemFilters
 
 
+# 文档对应：图2-2-4；2.2.4节 默认仅返回进行中记录。
 def test_list_items_hides_closed_records_by_default(client: TestClient) -> None:
     """默认查询只返回进行中的记录，并按时间倒序排列。"""
 
@@ -19,6 +21,7 @@ def test_list_items_hides_closed_records_by_default(client: TestClient) -> None:
     assert [item["id"] for item in body["items"]] == [1, 2, 3, 4, 5, 6]
 
 
+# 文档对应：图2-2-4；2.2.4节 组合筛选。
 def test_list_items_supports_combined_filters(client: TestClient) -> None:
     """关键词、类型和校区可以组合使用。"""
 
@@ -33,6 +36,7 @@ def test_list_items_supports_combined_filters(client: TestClient) -> None:
     assert body["items"][0]["title"] == "白色无线耳机"
 
 
+# 文档对应：图2-2-4；2.2.4节 分页稳定性。
 def test_list_items_supports_stable_pagination(client: TestClient) -> None:
     """分页应返回正确切片，同时保留总记录数。"""
 
@@ -57,6 +61,7 @@ def test_list_items_can_explicitly_query_closed_records(client: TestClient) -> N
     assert body["items"][0]["id"] == 7
 
 
+# 文档对应：图2-2-4 扩展场景；2.2节用例业务规则 查询输入边界。
 def test_list_items_returns_standard_validation_error(client: TestClient) -> None:
     """非法分页参数应返回项目统一错误结构。"""
 
@@ -70,6 +75,7 @@ def test_list_items_returns_standard_validation_error(client: TestClient) -> Non
     assert body["request_id"] == response.headers["X-Request-ID"]
 
 
+# 文档对应：图2-2-4 异常场景；3.1节 结果与错误反馈。
 def test_list_items_returns_safe_error_when_database_is_unavailable(
     client: TestClient,
 ) -> None:

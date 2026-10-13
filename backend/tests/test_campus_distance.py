@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """离线地点识别、真实坐标距离表和匹配排序的回归验证。"""
 
 import json
@@ -19,6 +20,7 @@ from tests.api.test_item_management import authenticated_headers, lost_payload
 from tests.api.test_remaining_features import found_payload
 
 
+# 文档对应：图2-2-10 离线距离矩阵的完整性、对称性及可重建性验证。
 def test_saved_matrix_is_complete_symmetric_and_reproducible():
     data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
     assert data["distances_meters"] == build_matrix(data["places"])
@@ -41,6 +43,7 @@ def test_saved_matrix_is_complete_symmetric_and_reproducible():
             assert distance == data["distances_meters"][other][place["id"]]
 
 
+# 文档对应：图2-2-10 米制距离与0、500、1000、2000、3000米评分边界验证。
 def test_distance_units_and_decay():
     assert straight_line_meters(
         {"latitude": 0, "longitude": 0}, {"latitude": 1, "longitude": 0}
@@ -66,6 +69,7 @@ def test_aliases_floors_and_full_width_text_share_a_building(item_repository, te
 
 
 @pytest.mark.parametrize("text", ["北教12", "北教一到北教二", "北教1附近不知何处", "测试地点"])
+# 文档对应：图2-2-10 未知或歧义地点不获得距离分；2.2.10节未评估规则。
 def test_unknown_or_ambiguous_text_is_not_a_near_match(item_repository, text):
     item = replace(item_repository.get_by_id(1), location=text)
     assert campus_distance_table().assess(item, item).score is None
@@ -87,6 +91,7 @@ def test_seed_locations_have_simulated_distances_except_test_placeholders(item_r
             assert "不代表实地距离" in assessment.explanation
 
 
+# 文档对应：图2-2-10 模拟地点及双向距离说明验证。
 def test_mixed_map_and_simulated_distance_is_labeled_in_both_directions(item_repository):
     source = item_repository.get_by_id(1)
     mapped = replace(source, location="北教一")
@@ -130,6 +135,7 @@ def test_real_distance_changes_ranking_with_same_other_features(item_repository)
     assert near_dimensions[-1]["score"] > far_dimensions[-1]["score"]
 
 
+# 文档对应：图2-2-10 地点未评估时不重分配35%权重。
 def test_missing_coordinates_do_not_receive_geographic_bonus(item_repository):
     source = replace(item_repository.get_by_id(1), location="未登记建筑")
     score, dimensions = MatchingService._score(source, source)
@@ -150,6 +156,7 @@ def test_cross_campus_distance_is_not_confused_with_same_named_gate(item_reposit
     ("北教1", "北教2", 89, 87, False),
     ("图书馆", "博学楼", 94, 47, True),
 ])
+# 文档对应：图2-2-2、图2-2-3、图2-2-10 发布后的通知保留地点分和距离解释。
 def test_published_match_explains_distance_in_api_response(
     client, lost_location, found_location, score, meters, simulated,
 ):

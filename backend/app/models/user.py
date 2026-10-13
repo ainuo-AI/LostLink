@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """用户账号与服务端会话的 SQLAlchemy 持久化模型。
 
 ``User`` 保存身份、角色、状态和登录保护字段；``AuthSession`` 保存可过期、
@@ -23,6 +24,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 
+# 文档对应：图2-3 用户实体；图2-2-1、图2-2-1a、图2-2-9a 的用户数据。
 class User(Base):
     """保存本地账号、权限和登录保护状态。
 
@@ -63,6 +65,7 @@ class User(Base):
     )
 
 
+# 文档对应：图2-2-1 建立会话；图2-2-1b 结束会话；表1-1 用户与会话。
 class AuthSession(Base):
     """保存不可逆的会话令牌摘要和服务端吊销状态。
 

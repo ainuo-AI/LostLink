@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /**
  * 举报提交页面
  *
@@ -75,6 +76,7 @@ async function loadItem() {
 }
 
 /** 校验表单后提交真实举报，并展示服务端生成的举报编号。 */
+// 文档对应：图2-2-8 提交举报；图2-3 举报界面；2.2.8节。
 async function submitReport() {
   submitted.value = true
   submitError.value = ''

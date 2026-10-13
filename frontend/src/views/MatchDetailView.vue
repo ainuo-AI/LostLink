@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /**
  * 匹配详情与反馈页面
  *
@@ -27,6 +28,7 @@ function formatTime(value: string) { return new Intl.DateTimeFormat('zh-CN', { d
 function statusText(status: MatchStatus) { return status === 'pending' ? '待处理' : status === 'confirmed' ? '已确认' : '已拒绝' }
 
 /** 读取详情时同时标记为已读，但不改变候选的处理状态。 */
+// 文档对应：图2-2-6、图2-2-7 读取候选详情并标记已读；图2-3 匹配通知界面。
 async function load() {
   loading.value = true
   errorMessage.value = ''
@@ -43,6 +45,7 @@ async function load() {
  * 处理候选前检查拒绝原因和说明长度，再通过确认框避免误操作。
  * busy 防止连续点击产生重复处理，服务层还会做第二次状态保护。
  */
+// 文档对应：图2-2-7 提交确认或拒绝；2.2.6、2.2.7节 拒绝原因及防重复操作。
 async function decide(decision: 'confirmed' | 'rejected') {
   if (busy.value || !match.value || match.value.status !== 'pending') return
   actionError.value = ''

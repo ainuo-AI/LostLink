@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ApiError } from '../api/client'
@@ -46,6 +47,7 @@ const filterSignature = computed(() => JSON.stringify({
 let activeRequest: AbortController | null = null
 
 /** 从 FastAPI 加载当前页，并忽略已经被新查询取代的旧请求。 */
+// 文档对应：图2-2-4 物品查询；图2-3 物品管理界面；2.2.4节。
 async function loadItems() {
   activeRequest?.abort()
   const controller = new AbortController()

@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """用户举报提交、个人记录查询和管理员处理接口。"""
 
 from typing import Annotated
@@ -18,6 +19,7 @@ from app.services.feature_service import ReportService
 router = APIRouter(tags=["reports"])
 
 
+# 文档对应：图2-2-8 提交举报请求；2.2.8节。
 @router.post(
     "/items/{item_id}/reports", response_model=ReportRead, status_code=status.HTTP_201_CREATED
 )
@@ -32,6 +34,7 @@ def create_report(
     return service.create(item_id, payload, user)
 
 
+# 文档对应：图2-1 举报物品信息的本人查询；2.2.8节。
 @router.get("/users/me/reports", response_model=ReportListResponse)
 def list_my_reports(
     user: Annotated[UserRead, Depends(get_current_user)],
@@ -44,6 +47,7 @@ def list_my_reports(
     return service.list_mine(user, page, page_size)
 
 
+# 文档对应：图2-2-9 管理员举报查询；2.2.9节。
 @router.get("/admin/reports", response_model=ReportListResponse)
 def list_admin_reports(
     _admin: Annotated[UserRead, Depends(require_admin)],
@@ -57,6 +61,7 @@ def list_admin_reports(
     return service.list_admin(report_status, page, page_size)
 
 
+# 文档对应：图2-2-9 管理员举报处理请求；2.2.9节。
 @router.patch("/admin/reports/{report_id}", response_model=ReportRead)
 def resolve_report(
     report_id: int,

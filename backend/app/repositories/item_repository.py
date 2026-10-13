@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """物品查询与管理的数据访问边界。
 
 生产实现把筛选、计数、排序、写入和状态审计交给 MySQL；内存实现作为快速
@@ -145,12 +146,14 @@ class ItemRepository(Protocol):
         """原子更新状态并写入审计记录。"""
 
 
+# 文档对应：图2-3 物品实体的持久化读写。
 class SqlAlchemyItemRepository:
     """使用 SQLAlchemy Session 查询和修改 MySQL 的正式仓储实现。"""
 
     def __init__(self, session: Session) -> None:
         self.session = session
 
+    # 文档对应：图2-2-4 查询物品；2.2.4节 数据库筛选和分页。
     def list_filtered(self, filters: ItemFilters) -> tuple[list[ItemRead], int]:
         """在数据库中完成组合筛选、稳定排序和分页。"""
 
@@ -168,12 +171,14 @@ class SqlAlchemyItemRepository:
         rows = self.session.scalars(page_statement).all()
         return [self._to_schema(row) for row in rows], total
 
+    # 文档对应：图2-2-4 读取详情；图2-2-5 读取待编辑物品。
     def get_by_id(self, item_id: int) -> ItemRecord | None:
         """读取一条记录；是否允许查看由 Service 决定。"""
 
         item = self.session.get(Item, item_id)
         return self._to_record(item) if item else None
 
+    # 文档对应：图2-2-10 查询相反失拾类型的进行中候选；2.2.10节。
     def list_matching_candidates(self, *, source: ItemRecord, limit: int = 50) -> list[ItemRecord]:
         """预筛选相反类型候选，限制扫描数量避免发布接口无界查询。"""
 
@@ -197,6 +202,7 @@ class SqlAlchemyItemRepository:
         rows = self.session.execute(select(Item.status, func.count()).group_by(Item.status)).all()
         return {ItemStatus(status): count for status, count in rows}
 
+    # 文档对应：图2-2-2、图2-2-3 保存新物品记录；2.2.2、2.2.3节。
     def create(self, item: NewItem) -> ItemRecord:
         """保存新记录并刷新数据库生成的编号和时间。"""
 
@@ -245,6 +251,7 @@ class SqlAlchemyItemRepository:
         ).all()
         return [self._to_owner_schema(self._to_record(row)) for row in rows], total
 
+    # 文档对应：图2-2-5 保存字段修改；2.2.5节。
     def update_fields(
         self,
         item_id: int,
@@ -268,6 +275,7 @@ class SqlAlchemyItemRepository:
         self.session.refresh(row)
         return self._to_record(row)
 
+    # 文档对应：图2-2-5a 更新终态并保存状态历史；2.2.5节；3.1节。
     def change_status(
         self,
         *,

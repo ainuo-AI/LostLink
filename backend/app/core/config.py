@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """应用配置模块。
 
 配置统一从环境变量读取，仓库只提交不含密钥的 `.env.example`。
@@ -37,6 +38,7 @@ class Settings(BaseSettings):
     upload_directory: Path = Path("var/uploads")
     upload_max_bytes: int = Field(default=5 * 1024 * 1024, ge=1024, le=20 * 1024 * 1024)
     # OpenAI 兼容的多模态匹配默认关闭，只有完整配置后才发送业务数据。
+    # 文档对应：图2-2-10a 可选模型的启用、候选上限、超时和融合权重；2.2.10节配置边界。
     matching_ai_enabled: bool = False
     matching_ai_base_url: AnyHttpUrl | None = None
     matching_ai_api_key: SecretStr = SecretStr("")
@@ -53,6 +55,7 @@ class Settings(BaseSettings):
     )
 
     @model_validator(mode="after")
+    # 文档对应：图2-2-10a 仅在完整模型配置下启用比较；2.2.10节启用条件。
     def validate_matching_ai(self) -> "Settings":
         if self.matching_ai_base_url:
             url = self.matching_ai_base_url

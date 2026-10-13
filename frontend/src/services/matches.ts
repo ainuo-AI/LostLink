@@ -1,3 +1,4 @@
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /** 匹配通知 API 适配模块。
  *
  * 后端保存通知、已读和反馈状态；本模块把 snake_case 响应转换为现有页面使用的
@@ -68,6 +69,7 @@ function toNotification(item: ApiMatchNotification): MatchNotification {
 }
 
 /** 按后端时间顺序读取当前用户的全部匹配通知。 */
+// 文档对应：图2-2-6 通知列表的前端API适配；2.2.6、2.2.7节。
 export async function listMatchNotifications(): Promise<MatchNotification[]> {
   const response = await requestJson<ApiMatchList>(
     '/api/v1/notifications?page=1&page_size=100',
@@ -78,6 +80,7 @@ export async function listMatchNotifications(): Promise<MatchNotification[]> {
 }
 
 /** 读取一条属于当前用户的匹配通知。 */
+// 文档对应：图2-2-6、图2-2-7 候选详情的前端API适配；2.2.6、2.2.7节。
 export async function getMatchNotification(id: string): Promise<MatchNotification | null> {
   const numericId = Number(id)
   if (!Number.isSafeInteger(numericId) || numericId < 1) return null
@@ -89,6 +92,7 @@ export async function getMatchNotification(id: string): Promise<MatchNotificatio
 }
 
 /** 标记一条通知已读，不改变反馈状态。 */
+// 文档对应：图2-2-6 标记已读的前端API适配；2.2.6、2.2.7节。
 export async function markMatchRead(id: string): Promise<MatchNotification> {
   const response = await requestJson<ApiMatchNotification>(
     `/api/v1/notifications/${Number(id)}/read`,
@@ -105,6 +109,7 @@ export async function markAllMatchesRead(): Promise<void> {
 }
 
 /** 保存确认或拒绝反馈；重复处理由后端状态机拒绝。 */
+// 文档对应：图2-2-7 确认或拒绝的前端API适配；2.2.6、2.2.7节。
 export async function decideMatch(
   id: string,
   decision: Exclude<MatchStatus, 'pending'>,

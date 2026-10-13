@@ -1,3 +1,5 @@
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+// 文档对应：图2-2-6、图2-2-7；2.2.6、2.2.7节 通知查询、已读及反馈的API适配测试。
 /** 匹配通知 API 适配测试。 */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'

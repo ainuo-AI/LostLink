@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /** 登录页负责收集凭据并把成功会话交给全站认证 Store。 */
 import { computed, nextTick, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -33,6 +34,7 @@ function readableError(error: unknown): string {
   return '无法连接登录服务，请确认后端已启动后重试。'
 }
 
+// 文档对应：图2-2-1 用户登录；图2-3 用户认证界面；2.2.1节。
 async function submitLogin() {
   if (submitting.value) return
   accountError.value = account.value.trim() ? '' : '请输入校园账号'

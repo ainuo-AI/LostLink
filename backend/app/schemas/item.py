@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """失物与拾物记录的 API 请求、响应和枚举契约。
 
 Schema 与数据库模型保持分离，防止未来数据库内部字段被意外暴露给前端。
@@ -115,6 +116,7 @@ class ItemListResponse(BaseModel):
     total: int = Field(ge=0)
 
 
+# 文档对应：图2-2-2、图2-2-3 的发布输入；2.2节用例业务规则 标题、时间、校区、保管字段及图片数量。
 class ItemCreate(BaseModel):
     """发布失物或拾物时由前端提交的字段。"""
 
@@ -175,6 +177,7 @@ class ItemCreate(BaseModel):
         return self
 
 
+# 文档对应：图2-2-5 编辑输入；2.2.5节；2.2节用例业务规则 字段边界。
 class ItemUpdate(BaseModel):
     """发布者可编辑的字段；未提供字段与显式 ``null`` 保持区分。"""
 
@@ -210,6 +213,7 @@ class ItemUpdate(BaseModel):
         return ItemCreate.validate_contact(value)
 
 
+# 文档对应：图2-2-5a 结束记录输入；2.2.5节 类型与终态约束。
 class ItemStatusUpdate(BaseModel):
     """发布者关闭或完成一条记录时提交的状态变化。"""
 

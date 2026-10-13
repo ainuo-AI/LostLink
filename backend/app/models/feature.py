@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """图片、举报、匹配通知和管理功能的数据库模型。
 
 本模块只描述持久化结构：上传文件的二进制内容保存在受控目录，数据库保存元数据；
@@ -26,6 +27,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base
 
 
+# 文档对应：图2-2-2、图2-2-3、图2-2-4 的图片实体；表1-1 图片管理。
 class StoredImage(Base):
     """保存上传图片的所有者、校验结果和磁盘定位信息。"""
 
@@ -52,6 +54,7 @@ class StoredImage(Base):
     )
 
 
+# 文档对应：图2-3 举报实体；图2-2-8 提交举报；图2-2-9 处理举报。
 class Report(Base):
     """保存用户对公开物品记录提交的举报及管理员处理结果。"""
 
@@ -88,6 +91,7 @@ class Report(Base):
     )
 
 
+# 文档对应：图2-3 候选通知实体；图2-2-6、图2-2-7、图2-2-10 的通知数据。
 class MatchNotification(Base):
     """保存一名用户可见的候选匹配、解释、已读和反馈状态。"""
 
@@ -131,6 +135,7 @@ class MatchNotification(Base):
     )
 
 
+# 文档对应：图2-2-9、图2-2-9a、图2-2-9c 的审计记录实体。
 class AdminAuditLog(Base):
     """不可变记录管理员对举报、用户和校准版本执行的操作。"""
 
@@ -153,6 +158,7 @@ class AdminAuditLog(Base):
     )
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 class CalibrationVersion(Base):
     """保存匹配权重版本及审核、启用和回滚所需的状态。"""
 
@@ -181,6 +187,7 @@ class CalibrationVersion(Base):
     )
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 class CalibrationTask(Base):
     """保存一次可复现的匹配评估任务及其候选版本结果。"""
 

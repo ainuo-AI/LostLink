@@ -1,3 +1,5 @@
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+// 文档对应：2.2节用例业务规则 输入等价类和边界检查；3.1节 图片边界；2.2.2、2.2.3节。
 import { describe, expect, it } from 'vitest'
 import { emptyDraft, maskContact, validateDraft, validateImages } from './itemValidation'
 import type { CampusLocationOption } from './campusLocations'

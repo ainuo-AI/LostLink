@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /** 当前用户资料与物品管理页，所有数据均来自受保护的后端接口。 */
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -44,6 +45,7 @@ function handleRequestError(error: unknown, fallback: string): string {
 }
 
 /** 根据当前类型、状态和页码加载当前用户自己的记录。 */
+// 文档对应：图2-2-5 编辑前读取本人记录；图2-3 物品管理界面。
 async function loadRecords() {
   loading.value = true
   pageError.value = ''
@@ -102,6 +104,7 @@ function startEdit(item: ApiOwnerItem) {
   actionError.value = ''
 }
 
+// 文档对应：图2-2-5 提交字段修改；2.2.5节。
 async function saveEdit() {
   if (!editing.value || actionId.value !== null) return
   if (editForm.title.trim().length < 2 || editForm.description.trim().length < 10) {
@@ -135,6 +138,7 @@ async function saveEdit() {
 }
 
 /** 终态变更先由用户确认，再交由后端执行类型和状态转换校验。 */
+// 文档对应：图2-2-5a 提交找回、归还或关闭结论；2.2.5节。
 async function finishItem(item: ApiOwnerItem, nextStatus: ItemStatus) {
   if (actionId.value !== null) return
   const label = statusLabels[nextStatus]
@@ -158,6 +162,7 @@ async function finishItem(item: ApiOwnerItem, nextStatus: ItemStatus) {
   }
 }
 
+// 文档对应：图2-2-1b 用户退出；2.2.1节。
 async function logout() {
   actionError.value = ''
   try {

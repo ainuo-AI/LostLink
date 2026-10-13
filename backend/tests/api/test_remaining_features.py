@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """图片、举报、匹配通知和管理后台 API 的端到端契约测试。
 
 测试使用内存仓储覆盖权限、状态转换和模块协作；MySQL 表结构由迁移检查和集成
@@ -26,6 +27,7 @@ def found_payload(**overrides: object) -> dict:
     return payload
 
 
+# 文档对应：图2-2-2、图2-2-3、图2-2-4；2.2.2、2.2.3节；3.1节 图片链路。
 def test_upload_associate_and_read_image(client: TestClient) -> None:
     """上传图片后可随物品关联并通过公开地址读取。"""
 
@@ -51,6 +53,7 @@ def test_upload_associate_and_read_image(client: TestClient) -> None:
     assert downloaded.headers["content-type"] == "image/png"
 
 
+# 文档对应：图2-2-8、图2-2-9；2.2.8、2.2.9节 举报提交、结案及审计。
 def test_report_submission_and_admin_resolution(
     client: TestClient,
     auth_repository: InMemoryAuthRepository,
@@ -86,6 +89,7 @@ def test_report_submission_and_admin_resolution(
     assert audits.json()["items"][0]["action"] == "report.resolve"
 
 
+# 文档对应：图2-2-10、图2-2-6、图2-2-7；2.2.6、2.2.7、2.2.10节 通知及反馈。
 def test_new_opposite_items_generate_match_and_accept_feedback(client: TestClient) -> None:
     """相反类型的新记录会生成双方通知，并允许一次性反馈。"""
 
@@ -122,6 +126,7 @@ def test_new_opposite_items_generate_match_and_accept_feedback(client: TestClien
     assert repeated.status_code == 409
 
 
+# 文档对应：图2-2-9a、图2-2-9b 用户状态及概览；本测试同时检查当前文档范围外的校准生命周期。
 def test_admin_user_overview_and_calibration_lifecycle(
     client: TestClient,
     auth_repository: InMemoryAuthRepository,

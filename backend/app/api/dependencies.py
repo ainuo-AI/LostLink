@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """HTTP 层的依赖注入和认证守卫。
 
 路由依赖抽象 Repository，而不是自行创建数据库连接，便于测试替换和后续事务扩展。
@@ -84,6 +85,7 @@ def get_report_service(
     return ReportService(features, items)
 
 
+# 文档对应：图2-2-10、图2-2-10a 的规则及可选比较对象组装；3.1节。
 def get_matching_service(
     features: Annotated[FeatureRepository, Depends(get_feature_repository)],
     items: Annotated[ItemRepository, Depends(get_item_repository)],
@@ -95,6 +97,7 @@ def get_matching_service(
     return MatchingService(features, items, ai)
 
 
+# 文档对应：图2-2-2、图2-2-3 调用图2-2-10；注入同一次发布使用的匹配控制对象。
 def get_item_service(
     repository: Annotated[ItemRepository, Depends(get_item_repository)],
     features: Annotated[FeatureRepository, Depends(get_feature_repository)],
@@ -125,6 +128,7 @@ def get_bearer_token(
     return credentials.credentials
 
 
+# 文档对应：图2-1 校园用户身份检查；3.1节 需要登录的业务入口。
 def get_current_user(
     token: Annotated[str, Depends(get_bearer_token)],
     service: Annotated[AuthService, Depends(get_auth_service)],
@@ -134,6 +138,7 @@ def get_current_user(
     return service.authenticate(token)
 
 
+# 文档对应：图2-1 管理员角色；图2-2-9至图2-2-9c 后台授权；3.1节权限检查。
 def require_admin(
     user: Annotated[UserRead, Depends(get_current_user)],
 ) -> UserRead:

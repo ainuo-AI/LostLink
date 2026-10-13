@@ -1,3 +1,5 @@
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+// 文档对应：图2-2-1、图2-2-1a、图2-2-1b；2.2.1节 认证API适配测试。
 /** 认证 API 客户端测试，确保敏感操作使用约定的方法、路径和 JSON 字段。 */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fetchCurrentUser, loginAccount, logoutAccount, registerAccount } from './auth'

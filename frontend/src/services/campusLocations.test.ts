@@ -1,3 +1,5 @@
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+// 文档对应：图2-2-2、图2-2-3 的地点筛选与无效选择测试。
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { isLocationSelection, locationOptions, useCampusLocations, type CampusLocationOption } from './campusLocations'
 

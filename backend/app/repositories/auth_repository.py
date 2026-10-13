@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """认证数据访问边界及其 SQLAlchemy、内存实现。
 
 ``AuthRepository`` 声明 Service 所需的最小持久化能力；
@@ -105,12 +106,14 @@ def _utc_naive(value: datetime) -> datetime:
     return value.astimezone(UTC).replace(tzinfo=None)
 
 
+# 文档对应：图2-3 用户实体的持久化读写。
 class SqlAlchemyAuthRepository:
     """使用 SQLAlchemy Session 在 MySQL 中持久化用户和会话。"""
 
     def __init__(self, session: Session) -> None:
         self.session = session
 
+    # 文档对应：图2-2-1 核验用户；图2-2-1a 检查账号唯一性。
     def get_user_by_account(self, account: str) -> UserRecord | None:
         user = self.session.scalar(select(User).where(User.account == account))
         return _to_record(user) if user else None
@@ -147,6 +150,7 @@ class SqlAlchemyAuthRepository:
         ).all()
         return [_to_record(row) for row in rows], total
 
+    # 文档对应：图2-2-9a 保存用户访问状态；2.2.9节。
     def set_user_status(self, *, user_id: int, status: UserStatus) -> UserRecord | None:
         """锁定目标用户行并更新账号状态。"""
 
@@ -159,6 +163,7 @@ class SqlAlchemyAuthRepository:
         self.session.refresh(user)
         return _to_record(user)
 
+    # 文档对应：图2-2-1a 保存新用户；2.2.1节。
     def create_user(
         self, *, account: str, password_hash: str, display_name: str | None
     ) -> UserRecord:
@@ -172,6 +177,7 @@ class SqlAlchemyAuthRepository:
         self.session.refresh(user)
         return _to_record(user)
 
+    # 文档对应：图2-2-1 保存登录会话；2.2.1节。
     def create_session(self, *, user_id: int, token_hash: str, expires_at: datetime) -> None:
         self.session.add(
             AuthSession(
@@ -195,6 +201,7 @@ class SqlAlchemyAuthRepository:
         user = self.session.scalar(statement)
         return _to_record(user) if user else None
 
+    # 文档对应：图2-2-1b 吊销当前会话；2.2.1节。
     def revoke_session(self, *, token_hash: str, now: datetime) -> bool:
         result = self.session.execute(
             update(AuthSession)

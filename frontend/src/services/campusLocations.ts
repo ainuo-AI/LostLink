@@ -1,3 +1,4 @@
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /** 地点选项来自后端距离目录。 */
 import { ref } from 'vue'
 import { requestJson } from '../api/client'
@@ -11,6 +12,7 @@ export interface CampusLocationOption {
   simulated: boolean
 }
 
+// 文档对应：图2-2-2、图2-2-3 发生及保管地点的校区、区域筛选。
 export function locationOptions(
   choices: CampusLocationOption[], campus: Campus | '', area: CampusArea | '' | null,
   anyArea = false,
@@ -20,6 +22,7 @@ export function locationOptions(
     && (anyArea || choice.area === (area || null)))
 }
 
+// 文档对应：图2-2-2、图2-2-3 的标准地点选择校验。
 export function isLocationSelection(
   choices: CampusLocationOption[], campus: Campus | '', area: CampusArea | '' | null,
   name: string, anyArea = false,
@@ -27,6 +30,7 @@ export function isLocationSelection(
   return locationOptions(choices, campus, area, anyArea).some((choice) => choice.name === name)
 }
 
+// 文档对应：图2-2-2、图2-2-3 的地点目录加载；2.2.10节公开地点接口。
 export function useCampusLocations() {
   const choices = ref<CampusLocationOption[]>([])
   const loading = ref(false)

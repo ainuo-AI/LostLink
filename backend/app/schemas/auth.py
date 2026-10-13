@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """认证 API 的请求、响应和枚举契约。
 
 本模块负责：
@@ -15,6 +16,7 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field, SecretStr
 
 
+# 文档对应：图2-1 校园用户及系统管理员的权限角色；3.1节。
 class UserRole(StrEnum):
     """当前系统支持的用户角色。"""
 
@@ -29,6 +31,7 @@ class UserStatus(StrEnum):
     RESTRICTED = "restricted"
 
 
+# 文档对应：图2-2-1a 注册输入；2.2节用例业务规则 账号3至64字符、注册密码8至128字符。
 class RegisterRequest(BaseModel):
     """使用校园账号和密码创建本地账号。"""
 
@@ -44,6 +47,7 @@ class RegisterRequest(BaseModel):
     display_name: str | None = Field(default=None, min_length=1, max_length=50)
 
 
+# 文档对应：图2-2-1 登录输入；2.2.1节 已有凭据核验。
 class LoginRequest(BaseModel):
     """使用账号和密码换取服务端会话令牌。"""
 

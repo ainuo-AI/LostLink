@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """失物与拾物记录的数据库模型。
 
 这里表达 MySQL 持久化结构；公开 API 字段仍由 schemas/item.py 单独定义。
@@ -12,6 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base
 
 
+# 文档对应：图2-3 物品实体；图2-2-2、图2-2-3、图2-2-4、图2-2-5、图2-2-5a 的记录。
 class Item(Base):
     """保存一条失物或拾物记录。"""
 

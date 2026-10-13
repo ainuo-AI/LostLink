@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """物品查询、发布、编辑和状态闭环的业务编排层。
 
 Service 负责默认筛选、权限、跨字段规则、状态转换和敏感字段边界，再委托
@@ -64,6 +65,7 @@ class OwnedItemQuery:
     page_size: int = 20
 
 
+# 文档对应：图2-3 物品管理控制；表1-1 发布、查询及我的记录。
 class ItemService:
     """编排公开查询和需要身份认证的记录管理规则。"""
 
@@ -79,6 +81,7 @@ class ItemService:
         self.feature_repository = feature_repository
         self.matching_service = matching_service
 
+    # 文档对应：图2-2-4 查询物品；2.2.4节 组合筛选、默认进行中及分页。
     def list_items(
         self,
         query: ItemQuery,
@@ -112,6 +115,7 @@ class ItemService:
             total=total,
         )
 
+    # 文档对应：图2-2-4 查看详情；2.2.4节 返回公开字段和图片。
     def get_public_item(self, item_id: int) -> ItemRead:
         """读取一条公开详情，任何状态都只返回公开字段。"""
 
@@ -121,6 +125,7 @@ class ItemService:
         public = self._to_public(item)
         return self._with_images(public) if self.feature_repository else public
 
+    # 文档对应：图2-2-2 发布失物；图2-2-3 登记拾物；图2-2-10 发布后形成候选；2.2.2、2.2.3节。
     def create_item(
         self,
         payload: ItemCreate,
@@ -176,10 +181,12 @@ class ItemService:
             matcher = self.matching_service or MatchingService(
                 self.feature_repository, self.repository
             )
+            # 文档对应：图2-2-10 发布或登记请求同步形成候选；对应图2-2-2、图2-2-3的ref片段。
             matcher.generate_for_item(item)
         owner = self._to_owner(item)
         return self._with_images(owner) if self.feature_repository else owner
 
+    # 文档对应：图2-2-5 编辑前读取本人记录；3.1节；2.2.5节 记录归属。
     def list_owned_items(
         self,
         query: OwnedItemQuery,
@@ -205,6 +212,7 @@ class ItemService:
             total=total,
         )
 
+    # 文档对应：图2-2-5 编辑物品记录；2.2.5节 本人权限、进行中状态及字段白名单。
     def update_item(
         self,
         item_id: int,
@@ -283,6 +291,7 @@ class ItemService:
         owner = self._to_owner(updated)
         return self._with_images(owner) if self.feature_repository else owner
 
+    # 文档对应：图2-2-5a 结束物品记录；2.2.5节 合法终态和状态历史。
     def update_status(
         self,
         item_id: int,
@@ -313,6 +322,7 @@ class ItemService:
         owner = self._to_owner(updated)
         return self._with_images(owner) if self.feature_repository else owner
 
+    # 文档对应：图2-2-5、图2-2-5a 的资源归属检查；3.1节 防止越权。
     def _get_managed_item(self, item_id: int, user: UserRead) -> ItemRecord:
         """读取管理对象并统一执行存在性和资源归属检查。"""
 
@@ -323,6 +333,7 @@ class ItemService:
         return item
 
     @staticmethod
+    # 文档对应：图2-2-2、图2-2-3、图2-2-5 标准发生地点及拾物保管地点的范围校验。
     def _validate_place_selection(campus, area, name, *, storage: bool = False) -> None:
         if not campus_distance_table().is_selection(campus, area, name, any_area=storage):
             raise AppError(
@@ -391,6 +402,7 @@ class ItemService:
                 status_code=422,
             )
 
+    # 文档对应：图2-2-5a 状态转换条件；2.2.5节 失物、拾物的合法终态。
     @staticmethod
     def _validate_status_transition(item: ItemRecord, new_status: ItemStatus) -> None:
         """第一阶段只允许进行中记录进入与类型匹配的终态。"""
@@ -410,6 +422,7 @@ class ItemService:
                 status_code=409,
             )
 
+    # 文档对应：图2-2-2、图2-2-3 的图片校验；3.1节；2.2节用例业务规则 图片数量及归属边界。
     def _validate_images(
         self,
         image_ids: list[str],
