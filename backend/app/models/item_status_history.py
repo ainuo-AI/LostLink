@@ -23,6 +23,7 @@ class ItemStatusHistory(Base):
     __tablename__ = "item_status_history"
     __table_args__ = (
         Index("ix_item_status_history_item_created", "item_id", "created_at"),
+        Index("ix_item_status_history_item_fk", "item_id"),
         {"mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_0900_ai_ci"},
     )
 

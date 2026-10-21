@@ -27,7 +27,7 @@ Bearer 请求头。
 
 ## 环境要求
 
-- Node.js 18、20、22 或更高版本
+- Node.js 22（与 CI 一致；完整测试工具链需要受支持的 Node.js 版本）
 - npm
 - 真实业务流程需要先按 [后端开发说明](../backend/README.md) 启动 FastAPI 和 MySQL
 
@@ -56,6 +56,7 @@ npm.cmd run dev
 
 ```bash
 npm run type-check
+npm run type-check:e2e
 npm test
 npm run build
 npm audit --omit=dev
@@ -64,6 +65,7 @@ npm audit --omit=dev
 - `type-check` 检查 TypeScript 和 Vue 组件类型。
 - `test` 检查认证、物品、举报与匹配接口适配、数据转换、表单校验和草稿存储。
 - `build` 生成 `dist/` 生产构建结果。
+- `type-check:e2e` 检查 Playwright 配置和浏览器测试类型；`test:e2e` 在隔离测试数据库上运行核心用户流程，环境准备和报告说明见[测试策略](../docs/development/testing.md)。
 - 2026-10-06 验证结果：6 个测试文件、17 个测试通过，生产构建通过，依赖审计为
   0 个已知漏洞。
 
@@ -76,6 +78,7 @@ npm audit --omit=dev
 - `src/stores/`：认证会话、导航缓存和举报 API 适配
 - `src/types/`：认证、物品、举报和匹配模块共享类型
 - `src/views/`：登录注册、查询、发布、个人管理、匹配通知和管理页面
+- `e2e/`：连接真实 FastAPI 和 MySQL 的 Playwright 浏览器测试
 
 前端模块边界和数据流见 [前端架构](../docs/architecture/frontend.md)，页面状态和视觉
 规则见 [设计资料](../docs/design/README.md)。

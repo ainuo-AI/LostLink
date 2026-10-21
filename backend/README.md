@@ -2,7 +2,7 @@
 
 > 状态：账号认证、物品与图片、举报、匹配通知、管理审计和校准接口均已实现；全部 migration 已在本地 MySQL 完成升级验证。
 >
-> 最后验证：2026-10-06；33 个默认测试和 3 个 MySQL 集成测试通过。
+> 本地验证：2026-10-21；95 个默认测试、3 个 MySQL 集成测试，以及迁移的部分/完整回滚再升级通过。
 
 后端采用 Python 3.12、FastAPI、SQLAlchemy 和 MySQL，并按照“接口层 → 服务层 → 数据访问层 → 数据模型层”组织。`GET /api/v1/items` 通过 Repository 查询 MySQL；内存 Repository 只用于不依赖数据库的快速测试。
 
@@ -71,6 +71,8 @@ uv run alembic downgrade -1
 
 已经合并或在共享环境执行过的 migration 不得修改；结构变化必须创建新的 migration。
 
+最新迁移为 `20261021_0005`，新增独立外键支撑索引，修复历史迁移回滚时 MySQL 报错 1553 的问题。降到 `0004` 时刻意保留兼容索引，继续回滚删除对应表/列时一并清除。完整回滚验证只允许在一次性测试库执行，步骤见[测试策略](../docs/development/testing.md)。
+
 ## 检查命令
 
 ```bash
@@ -85,8 +87,8 @@ $env:TEST_DATABASE_URL = $env:DATABASE_URL
 uv run pytest -m mysql
 ```
 
-代码检查和测试均应以退出码 `0` 结束。2026-10-06 的最近一次验证中，Ruff
-检查通过，33 个默认测试及 3 个显式启用的 MySQL 集成测试通过。
+代码检查和测试均应以退出码 `0` 结束。2026-10-21 本地验证中，Ruff
+检查通过，95 个默认测试及 3 个显式启用的 MySQL 集成测试通过。CI 统一检查名为 `CI passed`，本地复现步骤见[测试策略](../docs/development/testing.md)。
 
 ## 当前接口
 

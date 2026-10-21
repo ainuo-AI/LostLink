@@ -79,6 +79,7 @@ class AuthSession(Base):
     __tablename__ = "auth_sessions"
     __table_args__ = (
         Index("ix_auth_sessions_user_expires", "user_id", "expires_at"),
+        Index("ix_auth_sessions_user_fk", "user_id"),
         {"mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_0900_ai_ci"},
     )
 

@@ -53,7 +53,7 @@ docs(readme): add project structure guide
 - 业务功能与无关格式化修改应拆分提交。
 - 接口或数据结构变化必须同步更新文档。
 
-仓库目前提供 Issue 和 Pull Request 模板，但尚未配置 `.github/workflows/` 自动检查。作者应在 Pull Request 中写明实际执行的命令、结果、未执行项及原因；不能把本地未运行的检查写成 CI 已通过。
+仓库通过 `.github/workflows/ci.yml` 自动检查前后端代码、MySQL 迁移与集成、Playwright 核心浏览器流程。PR 应等待 `CI passed` 成功；管理员可将它设为 `main` 的必需检查。作者仍应在 Pull Request 中写明实际执行的命令、结果、未执行项及原因；不能把本地验证写成 GitHub CI 已通过。配置与复现方法见[测试策略](docs/development/testing.md)。
 
 ## 完成标准
 

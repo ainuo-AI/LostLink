@@ -1,0 +1,21 @@
+# 一次性测试数据库；与 compose.yaml 的开发数据库使用不同端口和项目名。
+name: lostlink-test
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: lostlink_test
+      MYSQL_USER: lostlink_test
+      MYSQL_PASSWORD: lostlink_test
+      MYSQL_ROOT_PASSWORD: lostlink_test_root
+      TZ: UTC
+    ports:
+      - "127.0.0.1:${MYSQL_TEST_PORT:-13306}:3306"
+    healthcheck:
+      test: [CMD-SHELL, "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    # 不挂载开发数据库卷；结束后用 down -v 删除测试容器及其匿名卷。

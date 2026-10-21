@@ -40,6 +40,7 @@ class Item(Base):
         Index("ix_items_type", "type"),
         Index("ix_items_category", "category"),
         Index("ix_items_campus_area", "campus", "area"),
+        Index("ix_items_owner_fk", "owner_id"),
         {"mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_0900_ai_ci"},
     )
 
