@@ -36,7 +36,7 @@
 
 ## 5. 合并
 
-Pull Request 通过评审并记录必要检查结果后再合并到 `main`。仓库当前没有 `.github/workflows/` 持续集成配置，不能把自动检查写成已运行的门槛；配置 CI 后再由团队确定强制检查项。合并后删除已经完成的短期分支。
+Pull Request 通过评审且 GitHub Actions 的 `CI passed` 成功后再合并到 `main`。流水线检查前后端、真实 MySQL 迁移与集成以及 Playwright 核心流程；管理员可将 `CI passed` 配置为必需检查，具体见[测试策略](testing.md)。合并后删除已经完成的短期分支。
 
 ## 看板状态
 

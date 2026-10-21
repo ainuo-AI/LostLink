@@ -8,13 +8,18 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "type-check": "vue-tsc -b"
+    "type-check": "vue-tsc -b",
+    "type-check:e2e": "tsc --project tsconfig.e2e.json",
+    "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "vue": "^3.5.13",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "22.20.5",
     "@vitejs/plugin-vue": "^5.2.1",
     "typescript": "~5.7.2",
     "vite": "^6.0.5",

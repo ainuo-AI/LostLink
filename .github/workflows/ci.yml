@@ -1,0 +1,163 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: 'true'
+  APP_ENV: test
+  MATCHING_AI_ENABLED: 'false'
+
+jobs:
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm test -- --reporter=default --reporter=junit --outputFile=test-results/vitest.xml
+      - run: npm run type-check:e2e
+      - run: npm run build
+      - name: Upload frontend test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: frontend-test-results
+          path: frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: '0.11.7'
+          python-version: '3.12'
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --locked
+      - run: uv run --frozen ruff check .
+      - run: uv run --frozen pytest -m 'not mysql' --junitxml=test-results/pytest.xml
+      - name: Upload backend test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: backend-test-results
+          path: backend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  integration:
+    name: MySQL and browser tests
+    needs: [frontend, backend]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: mysql+pymysql://lostlink_test:lostlink_test@127.0.0.1:3306/lostlink_test?charset=utf8mb4
+      TEST_DATABASE_URL: mysql+pymysql://lostlink_test:lostlink_test@127.0.0.1:3306/lostlink_test?charset=utf8mb4
+      E2E_DATABASE_URL: mysql+pymysql://lostlink_test:lostlink_test@127.0.0.1:3306/lostlink_test?charset=utf8mb4
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: lostlink_test
+          MYSQL_USER: lostlink_test
+          MYSQL_PASSWORD: lostlink_test
+          MYSQL_ROOT_PASSWORD: lostlink_test_root
+          TZ: UTC
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -ulostlink_test -plostlink_test --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: '0.11.7'
+          python-version: '3.12'
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --locked
+        working-directory: backend
+      - name: Check migration upgrade and rollback on the disposable database
+        working-directory: backend
+        run: |
+          uv run --frozen alembic upgrade head
+          uv run --frozen alembic downgrade 20261006_0004
+          uv run --frozen alembic upgrade head
+          uv run --frozen alembic downgrade 20260930_0001
+          uv run --frozen alembic upgrade head
+          uv run --frozen alembic downgrade base
+          uv run --frozen alembic upgrade head
+          uv run --frozen python -m scripts.seed_items
+      - name: Run real MySQL integration tests
+        working-directory: backend
+        run: uv run --frozen pytest -m mysql --junitxml=test-results/mysql.xml
+      - run: npm ci
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npm run test:e2e
+        working-directory: frontend
+      - name: Upload integration and browser results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: integration-test-results
+          path: |
+            backend/test-results/
+            frontend/playwright-report/
+            frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  required:
+    name: CI passed
+    if: ${{ always() }}
+    needs: [frontend, backend, integration]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Require every test job to pass
+        env:
+          FRONTEND_RESULT: ${{ needs.frontend.result }}
+          BACKEND_RESULT: ${{ needs.backend.result }}
+          INTEGRATION_RESULT: ${{ needs.integration.result }}
+        run: |
+          test "$FRONTEND_RESULT" = success
+          test "$BACKEND_RESULT" = success
+          test "$INTEGRATION_RESULT" = success

@@ -36,6 +36,8 @@ class StoredImage(Base):
     __tablename__ = "stored_images"
     __table_args__ = (
         Index("ix_stored_images_owner_created", "owner_id", "created_at"),
+        Index("ix_stored_images_owner_fk", "owner_id"),
+        Index("ix_stored_images_item_fk", "item_id", "id"),
         {"mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_0900_ai_ci"},
     )
 
