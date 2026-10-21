@@ -1,3 +1,5 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """图片、举报、匹配通知和管理功能的数据库模型。
 
 本模块只描述持久化结构：上传文件的二进制内容保存在受控目录，数据库保存元数据；
@@ -26,6 +28,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base
 
 
+# 文档对应：图2-2-2、图2-2-3、图2-2-4 的图片实体；表1-1 图片管理。
+# 设计文档对应：图4-3 StoredImage 数据类；mapped_column 对应图中字段，ForeignKey 对应关联。
 class StoredImage(Base):
     """保存上传图片的所有者、校验结果和磁盘定位信息。"""
 
@@ -39,6 +43,7 @@ class StoredImage(Base):
     owner_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
+    # 设计文档对应：图4-3 上传时可暂未关联物品，StoredImage 对应 Item 0..1。
     item_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("items.id", ondelete="CASCADE"), nullable=True, index=True
     )
@@ -52,6 +57,8 @@ class StoredImage(Base):
     )
 
 
+# 文档对应：图2-3 举报实体；图2-2-8 提交举报；图2-2-9 处理举报。
+# 设计文档对应：图4-3 Report 数据类；mapped_column 对应图中字段，ForeignKey 对应关联。
 class Report(Base):
     """保存用户对公开物品记录提交的举报及管理员处理结果。"""
 
@@ -76,6 +83,7 @@ class Report(Base):
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="pending")
     resolution_note: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # 设计文档对应：图4-3 待处理举报尚无管理员，处理人关联允许为空。
     handled_by_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("users.id"), nullable=True
     )
@@ -88,6 +96,8 @@ class Report(Base):
     )
 
 
+# 文档对应：图2-3 候选通知实体；图2-2-6、图2-2-7、图2-2-10 的通知数据。
+# 设计文档对应：图4-3 MatchNotification 数据类；mapped_column 对应图中字段，ForeignKey 对应关联。
 class MatchNotification(Base):
     """保存一名用户可见的候选匹配、解释、已读和反馈状态。"""
 
@@ -111,6 +121,7 @@ class MatchNotification(Base):
     recipient_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
+    # 设计文档对应：图4-3 候选通知分别关联来源物品与候选物品。
     source_item_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("items.id", ondelete="CASCADE"), nullable=False
     )
@@ -131,6 +142,8 @@ class MatchNotification(Base):
     )
 
 
+# 文档对应：图2-2-9、图2-2-9a、图2-2-9c 的审计记录实体。
+# 设计文档对应：图4-3 AdminAuditLog 数据类；mapped_column 对应图中字段，ForeignKey 对应关联。
 class AdminAuditLog(Base):
     """不可变记录管理员对举报、用户和校准版本执行的操作。"""
 
@@ -153,6 +166,7 @@ class AdminAuditLog(Base):
     )
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 class CalibrationVersion(Base):
     """保存匹配权重版本及审核、启用和回滚所需的状态。"""
 
@@ -181,6 +195,7 @@ class CalibrationVersion(Base):
     )
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 class CalibrationTask(Base):
     """保存一次可复现的匹配评估任务及其候选版本结果。"""
 

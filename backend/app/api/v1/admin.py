@@ -1,3 +1,5 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """管理端概览、用户、审计和匹配校准接口。
 
 本模块全部路由都依赖管理员守卫；具体状态规则与审计写入由 AdminService 负责。
@@ -24,6 +26,8 @@ from app.services.feature_service import AdminService
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
+# 文档对应：图2-2-9b 管理概览请求；2.2.9节。
+# 设计文档对应：图3-1-11 管理概览的 HTTP 入口。
 @router.get("/overview", response_model=OverviewRead)
 def overview(
     _admin: Annotated[UserRead, Depends(require_admin)],
@@ -34,6 +38,8 @@ def overview(
     return service.overview()
 
 
+# 文档对应：图2-2-9a 管理员用户查询；2.2.9节。
+# 设计文档对应：图3-1-13 管理员用户查询入口。
 @router.get("/users", response_model=AdminUserListResponse)
 def list_users(
     _admin: Annotated[UserRead, Depends(require_admin)],
@@ -48,6 +54,8 @@ def list_users(
     return service.list_users(keyword, user_status, page, page_size)
 
 
+# 文档对应：图2-2-9a 用户状态修改请求；2.2.9节。
+# 设计文档对应：图3-1-13 管理员限制或恢复用户入口。
 @router.patch("/users/{user_id}/status", response_model=UserRead)
 def update_user_status(
     user_id: int,
@@ -60,6 +68,8 @@ def update_user_status(
     return service.update_user_status(user_id, payload, admin)
 
 
+# 文档对应：图2-2-9c 审计查询请求；2.2.9节。
+# 设计文档对应：图3-1-14 管理员审计查询入口。
 @router.get("/audit", response_model=AuditLogListResponse)
 def list_audit_logs(
     _admin: Annotated[UserRead, Depends(require_admin)],
@@ -74,6 +84,7 @@ def list_audit_logs(
     return service.list_audits(action, object_type, page, page_size)
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 @router.post(
     "/calibration/tasks", response_model=CalibrationTaskRead, status_code=status.HTTP_201_CREATED
 )
@@ -87,6 +98,7 @@ def create_calibration_task(
     return service.create_calibration(payload, admin)
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 @router.get("/calibration/tasks", response_model=list[CalibrationTaskRead])
 def list_calibration_tasks(
     _admin: Annotated[UserRead, Depends(require_admin)],
@@ -97,6 +109,7 @@ def list_calibration_tasks(
     return service.list_calibration_tasks()
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 @router.get("/calibration/versions", response_model=list[CalibrationVersionRead])
 def list_calibration_versions(
     _admin: Annotated[UserRead, Depends(require_admin)],
@@ -107,6 +120,7 @@ def list_calibration_versions(
     return service.list_calibration_versions()
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 @router.patch("/calibration/versions/{version_id}", response_model=CalibrationVersionRead)
 def change_calibration_version(
     version_id: int,

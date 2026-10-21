@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /** 真实管理控制台。
  *
  * 该页面按当前栏目加载服务端数据，并提供举报结案、用户限制/恢复、校准任务和
@@ -50,22 +52,28 @@ function message(error: unknown): string {
 }
 
 /** 根据导航栏目只请求当前页面需要的数据。 */
+// 文档对应：图2-2-9b 管理概览；图2-2-9c 审计查询；图2-3 后台管理界面。
+// 设计文档对应：图3-2-9、图4-2 正式管理入口按 section 加载当前栏目的服务端数据。
 async function load() {
   loading.value = true
   errorMessage.value = ''
   try {
+    // 设计文档对应：图3-1-11 概览界面读取用户、物品、举报及通知统计。
     if (props.section === 'overview') overview.value = await fetchAdminOverview()
+    // 设计文档对应：图3-1-12 举报处理界面加载举报列表。
     if (props.section === 'reports') {
       reports.value = (await fetchAdminReports(
         reportStatus.value === 'all' ? undefined : reportStatus.value,
       )).items
     }
+    // 设计文档对应：图3-1-13 用户管理界面按账号和状态加载用户。
     if (props.section === 'users') {
       users.value = (await fetchAdminUsers(
         userKeyword.value,
         userStatus.value === 'all' ? undefined : userStatus.value,
       )).items
     }
+    // 设计文档对应：图3-1-14 审计日志界面加载只读操作记录。
     if (props.section === 'audit') audits.value = (await fetchAuditLogs()).items
     if (props.section === 'calibration') {
       [tasks.value, versions.value] = await Promise.all([
@@ -80,6 +88,8 @@ async function load() {
 }
 
 /** 要求管理员明确输入理由后处理举报。 */
+// 文档对应：图2-2-9 管理员处理举报；2.2.9节。
+// 设计文档对应：图4-1-11、图3-2-9 提交管理员处理结论及理由，完成后刷新列表。
 async function handleReport(report: AdminReport, status: Exclude<ReportStatus, 'pending'>) {
   const reason = window.prompt('请输入处理理由（至少 2 个字）：')?.trim()
   if (!reason || reason.length < 2) return
@@ -90,6 +100,8 @@ async function handleReport(report: AdminReport, status: Exclude<ReportStatus, '
 }
 
 /** 限制或恢复普通用户；后端会阻止修改管理员和自己的状态。 */
+// 文档对应：图2-2-9a 限制或恢复普通用户；2.2.9节。
+// 设计文档对应：图3-1-13、图3-2-9、图4-2 限制或恢复普通用户并刷新服务端状态。
 async function toggleUser(user: AuthUser) {
   const next: UserStatus = user.status === 'active' ? 'restricted' : 'active'
   const reason = window.prompt(`请输入${next === 'restricted' ? '限制' : '恢复'}理由：`)?.trim()
@@ -101,6 +113,7 @@ async function toggleUser(user: AuthUser) {
 }
 
 /** 创建校准任务；当前后端同步完成评估并生成 draft 候选版本。 */
+// 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 async function startCalibration() {
   if (!rangeStart.value || !rangeEnd.value) {
     errorMessage.value = '请选择完整的评估日期范围。'
@@ -117,6 +130,7 @@ async function startCalibration() {
 }
 
 /** 执行版本审批、拒绝、启用或回滚，并立即刷新版本列表。 */
+// 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 async function changeVersion(
   version: CalibrationVersion,
   action: 'approve' | 'reject' | 'activate' | 'rollback',
@@ -138,6 +152,7 @@ function formatTime(value: string | null): string {
 watch(() => props.section, () => { void load() }, { immediate: true })
 </script>
 
+<!-- 设计文档对应：图3-2-9 四个正式管理栏目共用该组件的状态与命令。 -->
 <template>
   <AdminLayout :section="section">
     <div class="admin-page-heading">
@@ -148,6 +163,7 @@ watch(() => props.section, () => { void load() }, { immediate: true })
     <p v-if="errorMessage" class="form-alert" role="alert">{{ errorMessage }}</p>
     <div v-if="loading" class="page-state" role="status"><span class="loading-spinner" aria-hidden="true"></span><p>正在加载管理数据…</p></div>
 
+    <!-- 设计文档对应：图3-1-11 管理员概览的外观模板。 -->
     <section v-else-if="section === 'overview' && overview" class="admin-metrics" aria-label="管理概览">
       <article v-for="metric in [
         ['用户总数', overview.users_total], ['受限用户', overview.users_restricted],
@@ -156,6 +172,7 @@ watch(() => props.section, () => { void load() }, { immediate: true })
       ]" :key="String(metric[0])" class="admin-metric-card"><h2>{{ metric[0] }}</h2><strong>{{ metric[1] }}</strong><p>实时服务端统计</p></article>
     </section>
 
+    <!-- 设计文档对应：图3-1-12 举报查询、处理结论按钮与列表的外观模板。 -->
     <section v-else-if="section === 'reports'">
       <form class="admin-panel admin-filters" @submit.prevent="load">
         <div class="filter-group"><label for="report-status">处理状态</label><select id="report-status" v-model="reportStatus"><option value="all">全部</option><option value="pending">待处理</option><option value="dismissed">已驳回</option><option value="resolved">已解决</option><option value="content_hidden">内容已隐藏</option></select></div>
@@ -165,11 +182,13 @@ watch(() => props.section, () => { void load() }, { immediate: true })
       <div v-if="!reports.length" class="admin-empty">暂无符合条件的举报。</div>
     </section>
 
+    <!-- 设计文档对应：图3-1-13 用户查询、限制与恢复按钮的外观模板。 -->
     <section v-else-if="section === 'users'">
       <form class="admin-panel admin-filters" @submit.prevent="load"><div class="filter-group"><label for="user-keyword">账号或名称</label><input id="user-keyword" v-model="userKeyword" /></div><div class="filter-group"><label for="user-status">状态</label><select id="user-status" v-model="userStatus"><option value="all">全部</option><option value="active">正常</option><option value="restricted">受限</option></select></div><button class="primary-button" type="submit">查询</button></form>
       <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>账号</th><th>显示名称</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody><tr v-for="user in users" :key="user.id"><td>{{ user.account }}</td><td>{{ user.display_name || '—' }}</td><td>{{ user.role }}</td><td>{{ user.status }}</td><td>{{ formatTime(user.created_at) }}</td><td><button v-if="user.role !== 'admin'" class="admin-inline-button" type="button" @click="toggleUser(user)">{{ user.status === 'active' ? '限制' : '恢复' }}</button><span v-else>受保护</span></td></tr></tbody></table></div>
     </section>
 
+    <!-- 设计文档对应：图3-1-14 管理员审计日志的外观模板。 -->
     <section v-else-if="section === 'audit'">
       <p class="admin-write-note">审计日志为只读记录。</p>
       <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>时间</th><th>操作者</th><th>动作</th><th>对象</th><th>理由</th></tr></thead><tbody><tr v-for="audit in audits" :key="audit.id"><td>{{ formatTime(audit.created_at) }}</td><td>#{{ audit.actor_id }}</td><td>{{ audit.action }}</td><td>{{ audit.object_type }} #{{ audit.object_id }}</td><td>{{ audit.reason }}</td></tr></tbody></table></div>

@@ -1,10 +1,13 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 import { nextTick, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthLayout from '../components/AuthLayout.vue'
 import { registerAccount } from '../api/auth'
 import { ApiError } from '../api/client'
 
+// 设计文档对应：图3-2-1、图4-2 注册输入、确认密码及校验状态。
 const account = ref('')
 const password = ref('')
 const confirmPassword = ref('')
@@ -20,6 +23,8 @@ function clearError(field: keyof typeof errors) {
   submissionMessage.value = ''
 }
 
+// 文档对应：图2-2-1a 用户注册；图2-3 用户认证界面；2.2.1节。
+// 设计文档对应：图4-1-1 校验两次密码，调用注册接口，成功后返回登录页。
 async function submitRegistration() {
   if (submitting.value) return
   submissionMessage.value = ''
@@ -61,6 +66,7 @@ async function submitRegistration() {
 }
 </script>
 
+<!-- 设计文档对应：图3-1-2、图3-2-1 注册外观；密码显示切换与返回命令在模板中实现。 -->
 <template>
   <AuthLayout title="注册账号" description="使用校园账号，开启你的 LostLink 之旅。">
     <form class="auth-form" novalidate @submit.prevent="submitRegistration">

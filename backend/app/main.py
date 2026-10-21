@@ -1,3 +1,4 @@
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """FastAPI 应用入口。
 
 这个模块只负责组装配置、中间件、异常处理器和路由，业务逻辑放在 Service 中，
@@ -13,6 +14,7 @@ from app.core.errors import register_exception_handlers
 from app.core.middleware import RequestIdMiddleware
 
 
+# 设计文档对应：图4-4、表4-1、图2-1 创建 FastAPI 应用，注册 HTTP 路由供 Uvicorn 运行。
 def create_app(settings: Settings | None = None) -> FastAPI:
     """创建一个可独立配置的 FastAPI 实例，方便正式运行和自动测试复用。"""
 

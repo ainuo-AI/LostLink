@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /**
  * 图片选择与预览组件
  *
@@ -53,6 +55,8 @@ onBeforeUnmount(() => {
 })
 
 /** 用户选择文件后先做前端规则校验，全部保存成功后才把编号交给父表单。 */
+// 文档对应：图2-2-2、图2-2-3；表1-1 图片管理：选择并校验发布图片。
+// 设计文档对应：图3-2-4、图4-1-9 选择图片后暂存 IndexedDB，实际上传由发布表单提交。
 async function selectFiles(event: Event) {
   const files = Array.from((event.target as HTMLInputElement).files ?? [])
   if (input.value) input.value.value = '' // 允许重新选择同一个文件。
@@ -80,6 +84,7 @@ async function remove(id: string) {
 }
 
 /** 打开原生 dialog 查看大图，并记录打开按钮，以便关闭后恢复键盘焦点。 */
+// 文档对应：图2-2-2、图2-2-3 提交前预览图片；表1-1 图片管理。
 async function openLarge(url: string, event: Event) {
   opener = event.currentTarget as HTMLElement
   largeUrl.value = url

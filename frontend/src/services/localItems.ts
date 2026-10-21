@@ -1,3 +1,4 @@
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 /**
  * 发布与登记的前端模拟服务
  *
@@ -59,6 +60,7 @@ function parseArray(raw: string | null): LocalItemRecord[] {
 }
 
 /** 使用 lost/found 后缀读取草稿，因此切换两个页面时不会混用表单内容。 */
+// 设计文档对应：图3-2-4 恢复该失拾类型的本地表单草稿。
 export async function loadDraft(type: RecordType): Promise<ItemDraft | null> {
   let raw: string | null
   try { raw = getStorage().getItem(`${DRAFT_PREFIX}${type}`) } catch { throw new DemoStorageError() }
@@ -73,12 +75,14 @@ export async function loadDraft(type: RecordType): Promise<ItemDraft | null> {
 }
 
 /** 保存当前类型的草稿快照；图片字段只保存 IndexedDB 编号。 */
+// 设计文档对应：图3-2-4 使用 localStorage 暂存草稿，正式发布仍走后端 API。
 export async function saveDraft(type: RecordType, draft: ItemDraft): Promise<void> {
   try { getStorage().setItem(`${DRAFT_PREFIX}${type}`, JSON.stringify(draft)) }
   catch { throw new DemoStorageError() }
 }
 
 /** 提交成功或用户确认重置后，删除对应类型的草稿。 */
+// 设计文档对应：图3-2-4 成功提交或重置后清理本地草稿。
 export async function clearDraft(type: RecordType): Promise<void> {
   try { getStorage().removeItem(`${DRAFT_PREFIX}${type}`) }
   catch { throw new DemoStorageError() }

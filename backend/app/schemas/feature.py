@@ -1,3 +1,5 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """图片、举报、匹配通知与管理后台的公开 API 契约。
 
 本模块集中定义新功能跨 HTTP 边界传输的数据结构。数据库 JSON 字符串会在
@@ -13,6 +15,7 @@ from app.schemas.auth import UserRead, UserStatus
 from app.schemas.item import ItemRead
 
 
+# 设计文档对应：图4-1-9 图片上传后的编号、类型、大小和公开地址响应。
 class ImageRead(BaseModel):
     """上传成功后返回的图片元数据和访问地址。"""
 
@@ -32,6 +35,8 @@ class ReportStatus(StrEnum):
     CONTENT_HIDDEN = "content_hidden"
 
 
+# 文档对应：图2-2-8 举报输入；2.2.8节 原因和说明约束。
+# 设计文档对应：图4-1-10 举报原因、补充说明与真实性确认。
 class ReportCreate(BaseModel):
     """用户举报一条物品记录时提交的原因和补充说明。"""
 
@@ -40,6 +45,8 @@ class ReportCreate(BaseModel):
     description: str | None = Field(default=None, max_length=500)
 
 
+# 文档对应：图2-2-9 举报处理输入；2.2.9节 结论与说明。
+# 设计文档对应：图4-1-11 管理员处理结论与理由约束。
 class ReportResolve(BaseModel):
     """管理员处理举报时提交的结论和必填说明。"""
 
@@ -87,6 +94,7 @@ class MatchStatus(StrEnum):
     REJECTED = "rejected"
 
 
+# 设计文档对应：图3-1-8 评分维度允许 null，携带未评估原因。
 class MatchDimension(BaseModel):
     """解释综合分数的单个匹配维度。"""
 
@@ -95,6 +103,7 @@ class MatchDimension(BaseModel):
     explanation: str
 
 
+# 设计文档对应：图3-2-5、图3-2-6 通知列表与候选详情的返回模型。
 class MatchNotificationRead(BaseModel):
     """通知列表和匹配详情共享的完整候选视图。"""
 
@@ -122,6 +131,8 @@ class MatchNotificationListResponse(BaseModel):
     unread: int
 
 
+# 文档对应：图2-2-7 反馈输入；2.2.6、2.2.7节 拒绝原因及有效反馈状态。
+# 设计文档对应：图4-1-8 确认/拒绝输入及拒绝原因约束。
 class MatchFeedback(BaseModel):
     """用户对候选匹配提交确认或拒绝反馈。"""
 
@@ -148,6 +159,8 @@ class AdminUserListResponse(BaseModel):
     total: int
 
 
+# 文档对应：图2-2-9a 用户状态输入；2.2.9节 操作理由。
+# 设计文档对应：图3-1-13 管理员限制或恢复用户的输入。
 class UserStatusUpdate(BaseModel):
     """管理员限制或恢复普通用户账号。"""
 
@@ -156,6 +169,7 @@ class UserStatusUpdate(BaseModel):
     reason: str = Field(min_length=2, max_length=500)
 
 
+# 设计文档对应：图3-1-11 管理概览统计响应。
 class OverviewRead(BaseModel):
     """管理台首页使用的核心运营计数。"""
 
@@ -167,6 +181,7 @@ class OverviewRead(BaseModel):
     notifications_unread: int
 
 
+# 设计文档对应：图3-1-14 管理员审计日志公开响应。
 class AuditLogRead(BaseModel):
     """一次不可变管理员操作审计记录。"""
 
@@ -199,6 +214,7 @@ class CalibrationStatus(StrEnum):
     ARCHIVED = "archived"
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 class CalibrationTaskCreate(BaseModel):
     """创建一次指定日期范围的匹配校准任务。"""
 
@@ -244,6 +260,7 @@ class CalibrationVersionRead(BaseModel):
     updated_at: datetime
 
 
+# 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
 class CalibrationVersionAction(BaseModel):
     """管理员对候选版本执行审批、拒绝、启用或回滚。"""
 

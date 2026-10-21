@@ -1,3 +1,5 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """图片、举报、匹配、审计和校准功能的数据访问边界。
 
 正式实现把所有持久化操作封装在 SQLAlchemy Session 中；内存实现用于快速接口
@@ -132,6 +134,7 @@ class CalibrationTaskRecord:
     completed_at: datetime | None
 
 
+# 设计文档对应：图2-1 数据层访问接口；完整方法定义对应设计说明书 4.3.2 节。
 class FeatureRepository(Protocol):
     """声明新增功能需要的持久化操作。"""
 
@@ -205,12 +208,16 @@ class FeatureRepository(Protocol):
     ) -> CalibrationVersionRecord | None: ...
 
 
+# 文档对应：图2-3 候选通知和举报实体的持久化读写；表1-1 匹配通知与举报治理。
+# 设计文档对应：图2-1 SqlAlchemyFeatureRepository 的职责与成员关系。
 class SqlAlchemyFeatureRepository:
     """使用当前请求 SQLAlchemy Session 的正式新增功能仓储。"""
 
     def __init__(self, session: Session) -> None:
         self.session = session
 
+    # 文档对应：图2-2-2、图2-2-3 的图片元数据保存；3.1节。
+    # 设计文档对应：图4-1-9、图4-3 保存 StoredImage 元数据，图片内容保存在本地文件系统。
     def create_image(self, record: ImageRecord) -> ImageRecord:
         row = StoredImage(
             **{
@@ -232,10 +239,12 @@ class SqlAlchemyFeatureRepository:
         self.session.refresh(row)
         return self._image(row)
 
+    # 设计文档对应：图4-1-9 按图片编号读取元数据和关联状态。
     def get_image(self, image_id: str) -> ImageRecord | None:
         row = self.session.get(StoredImage, image_id)
         return self._image(row) if row else None
 
+    # 设计文档对应：图4-1-5、图4-1-7 读取物品关联图片，供公开详情和模型比较使用。
     def list_item_images(self, item_id: int) -> list[ImageRecord]:
         """按上传时间返回物品当前关联的图片。"""
 
@@ -246,6 +255,7 @@ class SqlAlchemyFeatureRepository:
         ).all()
         return [self._image(row) for row in rows]
 
+    # 设计文档对应：图4-1-9 删除已通过 Service 归属检查的临时图片元数据。
     def delete_image(self, image_id: str) -> bool:
         row = self.session.get(StoredImage, image_id)
         if row is None:
@@ -254,6 +264,8 @@ class SqlAlchemyFeatureRepository:
         self.session.commit()
         return True
 
+    # 文档对应：图2-2-2、图2-2-3 关联图片和新物品；2.2.2、2.2.3节。
+    # 设计文档对应：图4-1-3、图4-1-4 将上传者的临时图片关联到新物品。
     def attach_images(self, *, image_ids: list[str], item_id: int, owner_id: int) -> bool:
         if not image_ids:
             return True
@@ -270,6 +282,7 @@ class SqlAlchemyFeatureRepository:
         self.session.commit()
         return True
 
+    # 设计文档对应：图4-1-6 按编辑请求替换物品图片关联。
     def replace_item_images(self, *, image_ids: list[str], item_id: int, owner_id: int) -> bool:
         current = self.session.scalars(
             select(StoredImage).where(StoredImage.item_id == item_id).with_for_update()
@@ -295,6 +308,8 @@ class SqlAlchemyFeatureRepository:
         self.session.commit()
         return True
 
+    # 文档对应：图2-2-8 保存举报；2.2.8节。
+    # 设计文档对应：图4-1-10、图4-3 保存用户提交的 Report。
     def create_report(
         self, *, item_id: int, reporter_id: int, reason: str, description: str | None
     ) -> ReportRecord:
@@ -306,6 +321,7 @@ class SqlAlchemyFeatureRepository:
         self.session.refresh(row)
         return self._report(row)
 
+    # 设计文档对应：图4-1-10 检查同一举报者对该物品的重复待处理举报。
     def has_pending_report(self, *, item_id: int, reporter_id: int) -> bool:
         return (
             self.session.scalar(
@@ -318,6 +334,7 @@ class SqlAlchemyFeatureRepository:
             is not None
         )
 
+    # 设计文档对应：图3-1-12 按提交者或状态筛选举报并分页。
     def list_reports(
         self, *, reporter_id: int | None, status: ReportStatus | None, offset: int, limit: int
     ) -> tuple[list[ReportRecord], int]:
@@ -339,10 +356,13 @@ class SqlAlchemyFeatureRepository:
         ).all()
         return [self._report(row) for row in rows], total
 
+    # 设计文档对应：图4-1-11 处理前读取当前举报及其状态。
     def get_report(self, report_id: int) -> ReportRecord | None:
         row = self.session.get(Report, report_id)
         return self._report(row) if row else None
 
+    # 文档对应：图2-2-9 保存举报结论；2.2.9节。
+    # 设计文档对应：图4-1-11 行锁保护 pending 举报结案，保存结论、处理人和时间。
     def resolve_report(
         self, *, report_id: int, status: ReportStatus, note: str, admin_id: int, now: datetime
     ) -> ReportRecord | None:
@@ -359,6 +379,8 @@ class SqlAlchemyFeatureRepository:
         self.session.refresh(row)
         return self._report(row)
 
+    # 文档对应：图2-2-10 保存去重候选通知；2.2.10节；2.2节用例业务规则 通知阈值。
+    # 设计文档对应：图4-1-7、图4-3 保存去重候选通知及生成时的评分维度快照。
     def create_match(
         self,
         *,
@@ -384,6 +406,8 @@ class SqlAlchemyFeatureRepository:
         self.session.refresh(row)
         return self._match(row)
 
+    # 文档对应：图2-2-6 查询本人通知及未读数；2.2.6、2.2.7节。
+    # 设计文档对应：图3-2-5 按接收者分页查询通知并统计未读数量。
     def list_matches(
         self, *, recipient_id: int, offset: int, limit: int
     ) -> tuple[list[MatchRecord], int, int]:
@@ -405,10 +429,13 @@ class SqlAlchemyFeatureRepository:
         ).all()
         return [self._match(row) for row in rows], total, unread
 
+    # 设计文档对应：图3-2-6、图4-1-8 读取候选通知和保存的评分结果。
     def get_match(self, match_id: int) -> MatchRecord | None:
         row = self.session.get(MatchNotification, match_id)
         return self._match(row) if row else None
 
+    # 文档对应：图2-2-6 保存已读状态；2.2.6、2.2.7节。
+    # 设计文档对应：图3-2-5、图3-2-6 行锁更新接收者通知的已读标记。
     def mark_match_read(self, *, match_id: int, recipient_id: int) -> MatchRecord | None:
         row = self.session.scalar(
             select(MatchNotification)
@@ -426,6 +453,8 @@ class SqlAlchemyFeatureRepository:
         self.session.refresh(row)
         return self._match(row)
 
+    # 文档对应：图2-2-7 保存反馈并标记已读；2.2.6、2.2.7节 防止覆盖已处理反馈。
+    # 设计文档对应：图4-1-8 仅更新接收者本人的 pending 候选，不修改原始分数和维度。
     def decide_match(
         self,
         *,
@@ -455,6 +484,8 @@ class SqlAlchemyFeatureRepository:
         self.session.refresh(row)
         return self._match(row)
 
+    # 文档对应：图2-2-9、图2-2-9a、图2-2-9c 保存管理员审计；校准操作在当前文档范围外。
+    # 设计文档对应：图4-1-11、图3-1-13、图4-3 保存管理员操作人、对象、原因及详情。
     def create_audit(
         self,
         *,
@@ -478,6 +509,8 @@ class SqlAlchemyFeatureRepository:
         self.session.refresh(row)
         return self._audit(row)
 
+    # 文档对应：图2-2-9c 查询审计记录；2.2.9节。
+    # 设计文档对应：图3-1-14 按操作和对象类型筛选审计日志。
     def list_audits(
         self, *, action: str | None, object_type: str | None, offset: int, limit: int
     ) -> tuple[list[AuditRecord], int]:
@@ -494,6 +527,7 @@ class SqlAlchemyFeatureRepository:
         ).all()
         return [self._audit(row) for row in rows], total
 
+    # 设计文档对应：图3-1-11 提供待处理举报及未读通知等概览计数。
     def feature_counts(self) -> dict[str, int]:
         return {
             "reports_pending": self.session.scalar(
@@ -506,6 +540,7 @@ class SqlAlchemyFeatureRepository:
             or 0,
         }
 
+    # 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
     def create_calibration(
         self,
         *,
@@ -558,6 +593,7 @@ class SqlAlchemyFeatureRepository:
         ).all()
         return [self._version(row) for row in rows]
 
+    # 文档范围：校准任务和版本管理未纳入当前需求规格说明书；此处保留已有实现，不关联当前图表。
     def change_calibration_version(
         self, *, version_id: int, action: str, admin_id: int, reason: str
     ) -> CalibrationVersionRecord | None:

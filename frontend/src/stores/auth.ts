@@ -1,3 +1,5 @@
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 /**
  * 全站认证状态。
  *
@@ -20,6 +22,8 @@ function clearSession(): void {
 }
 
 /** 登录并保存带绝对过期时间的会话；密码只存在于本次请求内。 */
+// 文档对应：图2-2-1 登录后的会话状态维护；2.2.1节。
+// 设计文档对应：图4-1-2、图3-2-1 保存登录返回的 Bearer 令牌和用户摘要。
 async function login(payload: LoginPayload): Promise<AuthUser> {
   const response = await loginAccount(payload)
   const expiresAt = Date.now() + response.expires_in * 1000
@@ -30,6 +34,8 @@ async function login(payload: LoginPayload): Promise<AuthUser> {
 }
 
 /** 应用首次导航时向服务端确认缓存会话，失效会话会被静默清理。 */
+// 文档对应：图2-1 校园用户的身份恢复；表1-1 用户与会话。
+// 设计文档对应：图3-3-1、图3-3-2 向服务端恢复有效身份，供路由守卫使用。
 async function restore(): Promise<AuthUser | null> {
   if (initialized.value) return user.value
   if (!readStoredSession()) {
@@ -58,6 +64,8 @@ async function restore(): Promise<AuthUser | null> {
 }
 
 /** 无论服务端注销是否成功，都清除本地会话，避免用户继续误认为已登录。 */
+// 文档对应：图2-2-1b 退出并清理前端会话；2.2.1节。
+// 设计文档对应：图3-2-7 调用吊销会话 API 后清理当前前端会话。
 async function logout(): Promise<void> {
   try {
     if (readStoredSession()) await logoutAccount()

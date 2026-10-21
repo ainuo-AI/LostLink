@@ -1,3 +1,5 @@
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 /** 举报 API 适配模块。
  *
  * 页面仍使用原有 ReportCreate/LocalReport 类型，本模块负责把 item_id 放进资源路径，
@@ -8,6 +10,8 @@ import { requestJson } from '../api/client'
 import type { LocalReport, ReportCreate } from '../types/report'
 
 /** 向服务端提交举报，返回可用于成功页展示的举报记录。 */
+// 文档对应：图2-2-8 举报请求适配；函数保留旧名称，实际提交至后端；2.2.8节。
+// 设计文档对应：图4-1-10 函数沿用旧名称，实际向服务端提交举报。
 export function createLocalReport(payload: ReportCreate): Promise<LocalReport> {
   return requestJson<LocalReport>(`/api/v1/items/${payload.item_id}/reports`, {
     method: 'POST',

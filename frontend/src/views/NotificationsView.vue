@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /**
  * 匹配通知列表页
  *
@@ -31,6 +33,8 @@ const visible = computed(() => filtered.value.slice(0, visibleCount.value))
 function formatTime(value: string) { return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) }
 function statusText(status: MatchStatus) { return status === 'pending' ? '待处理' : status === 'confirmed' ? '已确认' : '已拒绝' }
 
+// 文档对应：图2-2-6 读取匹配通知；图2-3 匹配通知界面；2.2.6、2.2.7节。
+// 设计文档对应：图3-2-5、图4-2 加载接收者本人的站内匹配通知。
 async function load() {
   loading.value = true
   errorMessage.value = ''
@@ -47,12 +51,16 @@ async function resetDemo() {
 }
 
 /** 标记后重新加载服务数据，让列表卡片和顶部未读数量同步更新。 */
+// 文档对应：图2-2-6 标记单条通知已读；2.2.6、2.2.7节。
+// 设计文档对应：图3-2-5 调用单条已读接口，已读状态独立于确认或拒绝状态。
 async function readOne(id: string) {
   actionError.value = ''
   try { await markMatchRead(id); await load() }
   catch (error) { actionError.value = error instanceof Error ? error.message : '标记失败。' }
 }
 
+// 文档对应：图2-2-6 的批量已读操作，复用单条已读接口；2.2.6、2.2.7节。
+// 设计文档对应：图3-2-5 并发调用单条已读接口完成全部标为已读。
 async function readAll() {
   actionError.value = ''
   try { await markAllMatchesRead(); await load() }
@@ -60,11 +68,13 @@ async function readAll() {
 }
 
 /** 使用带 id 的子路由打开详情，刷新和浏览器前进后退都能恢复页面。 */
+// 设计文档对应：图3-3-2 由通知列表跳转到候选详情。
 function openDetail(id: string) { void router.push({ name: 'match-detail', params: { id } }) }
 function navigate(label: string) { if (label === '我的') window.alert('「我的」将在后续迭代中开放。') }
 onMounted(() => { void load() })
 </script>
 
+<!-- 设计文档对应：图3-1-7 通知列表、未读数、状态筛选与加载更多的外观。 -->
 <template>
   <div class="app-shell">
     <SiteHeader active-nav="匹配通知" @navigate="navigate" />

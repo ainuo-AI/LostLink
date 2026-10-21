@@ -1,3 +1,6 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
+# 设计文档对应：图4-1-1、图4-1-2 注册、登录与会话保护的现有 API 测试。
 """认证 API 与通用权限守卫的快速测试。
 
 测试通过内存仓储覆盖公开接口行为，不连接 MySQL；正式仓储的最小读写与吊销
@@ -33,6 +36,7 @@ def login(client: TestClient, account: str = "20260001") -> dict:
     return response.json()
 
 
+# 文档对应：图2-2-1a；2.2.1节 注册结果及敏感字段；3.1节。
 def test_register_creates_unverified_regular_user_without_exposing_password(
     client: TestClient,
     auth_repository: InMemoryAuthRepository,
@@ -51,6 +55,7 @@ def test_register_creates_unverified_regular_user_without_exposing_password(
     assert stored.password_hash.startswith("scrypt$")
 
 
+# 文档对应：图2-2-1a；2.2节用例业务规则 注册密码长度边界；2.2.1节。
 def test_register_rejects_short_password(client: TestClient) -> None:
     response = client.post(
         "/api/v1/auth/register",
@@ -73,6 +78,7 @@ def test_register_rejects_duplicate_account_case_insensitively(client: TestClien
     assert response.json()["code"] == "ACCOUNT_EXISTS"
 
 
+# 文档对应：图2-2-1；2.2.1节 登录和有效会话。
 def test_login_and_current_user_complete_session_flow(client: TestClient) -> None:
     registered = register(client)
     authenticated = login(client)
@@ -106,6 +112,7 @@ def test_login_returns_same_safe_error_for_unknown_account_and_wrong_password(
     assert wrong_password.json()["message"] == unknown_account.json()["message"]
 
 
+# 文档对应：图2-2-1 扩展场景；2.2.1节 连续失败锁定。
 def test_repeated_login_failures_temporarily_lock_account(client: TestClient) -> None:
     register(client)
     for _ in range(5):
@@ -123,6 +130,7 @@ def test_repeated_login_failures_temporarily_lock_account(client: TestClient) ->
     assert correct_password.json()["code"] == "AUTHENTICATION_FAILED"
 
 
+# 文档对应：图2-2-1b；2.2.1节 退出仅吊销当前会话。
 def test_logout_revokes_only_the_current_session(client: TestClient) -> None:
     register(client)
     first = login(client)["access_token"]
@@ -175,6 +183,7 @@ def build_user(*, user_id: int = 1, role: UserRole = UserRole.USER) -> UserRead:
     )
 
 
+# 文档对应：图2-2-5、图2-2-5a；3.1节 资源归属；2.2.5节。
 def test_owner_or_admin_permission_guard() -> None:
     require_owner_or_admin(build_user(user_id=1), Resource(owner_id=1))
     require_owner_or_admin(build_user(role=UserRole.ADMIN), Resource(owner_id=99))
@@ -184,6 +193,7 @@ def test_owner_or_admin_permission_guard() -> None:
     assert forbidden.value.code == "FORBIDDEN"
 
 
+# 文档对应：图2-1 系统管理员权限；3.1节；2.2.9节。
 def test_admin_permission_guard() -> None:
     assert require_admin_role(build_user(role=UserRole.ADMIN)).role == UserRole.ADMIN
 

@@ -1,3 +1,5 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """物品状态变化的数据库审计模型。
 
 每次有效状态转换单独写入一条不可变记录，保存原状态、新状态、操作者、原因和
@@ -13,6 +15,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base
 
 
+# 文档对应：图2-2-5a 状态历史实体；2.2.5节 状态与历史一致。
+# 设计文档对应：图4-3 ItemStatusHistory 数据类；mapped_column 对应图中字段，ForeignKey 对应关联。
 class ItemStatusHistory(Base):
     """保存一次已经成功提交的物品状态转换。"""
 

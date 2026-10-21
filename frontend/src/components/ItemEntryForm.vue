@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /**
  * 发布失物与登记拾物共用表单
  *
@@ -24,6 +26,7 @@ const props = defineProps<{ type: RecordType }>()
 const router = useRouter()
 const { clearSession } = useAuth()
 const isFound = computed(() => props.type === 'found')
+// 设计文档对应：图3-2-4、图4-2 共享发布表单的草稿、字段错误、地点与提交状态。
 const draft = reactive<ItemDraft>(emptyDraft())
 const { choices: locations, loading: locationsLoading, error: locationsError, load: loadLocations } = useCampusLocations()
 const availableLocations = computed(() => locationOptions(locations.value, draft.campus, draft.area))
@@ -43,6 +46,7 @@ const hasContent = computed(() => Object.entries(draft).some(([key, value]) => k
 const fieldOrder: DraftField[] = ['title', 'category', 'description', 'imageIds', 'campus', 'area', 'location', 'occurredAt', 'storageMethod', 'storageLocation', 'contact', 'contactWindow', 'contactNote']
 
 /** 页面进入时读取对应业务类型的本地草稿，失物和拾物草稿不会串用。 */
+// 设计文档对应：图3-2-4 恢复 localStorage 字段与 IndexedDB 图片，并加载地点选项。
 async function hydrate() {
   loading.value = true
   storageWarning.value = ''
@@ -65,6 +69,8 @@ watch(() => draft.campus, (campus) => {
   if (campus !== '东丽校区') draft.area = ''
 })
 
+// 文档对应：图2-2-2、图2-2-3 校区或区域改变后清空失效地点；2.2.10节目录规则。
+// 设计文档对应：图3-2-4 校区或区域变化后清空已失效的目录地点选择。
 function clearInvalidLocations() {
   if (!locations.value.length) return
   if (!isLocationSelection(locations.value, draft.campus, draft.area, draft.location)) draft.location = ''
@@ -110,6 +116,8 @@ async function focusFirstError() {
  * 提交流程：字段校验 → 上传暂存图片 → 调用发布接口关联图片 → 清空本地草稿。
  * 任一步失败都会保留用户已填写内容，并显示可重试的错误信息。
  */
+// 文档对应：图2-2-2、图2-2-3 的共用提交；图2-3 物品管理界面；2.2.2、2.2.3节。
+// 设计文档对应：图4-1-3、图4-1-4、图4-1-9 先校验和上传图片，再提交 lost/found 物品记录。
 async function submit() {
   if (submitting.value) return
   Object.keys(errors).forEach((key) => delete errors[key as DraftField])
@@ -183,6 +191,7 @@ async function submit() {
 }
 
 /** 重置前征求确认，并清理草稿字段及 IndexedDB 中对应的本地图片。 */
+// 设计文档对应：图3-2-4 清理当前类型草稿及本地图片。
 async function reset() {
   if (hasContent.value && !window.confirm('确定清空当前表单和已选图片吗？此操作不可恢复。')) return
   formError.value = ''
@@ -206,6 +215,7 @@ function imageError(message: string) { setError('imageIds', message) }
 function updateImages(ids: string[]) { draft.imageIds = ids; delete errors.imageIds }
 </script>
 
+<!-- 设计文档对应：图3-1-5、图3-1-6 两个完整表单的共用外观，found 分支显示保管字段。 -->
 <template>
   <div class="app-shell">
       <SiteHeader :active-nav="isFound ? '登记拾物' : '发布失物'" />

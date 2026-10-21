@@ -1,3 +1,5 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """注册、登录、会话认证和注销的业务编排层。
 
 ``AuthService`` 位于 HTTP API 与 Repository 之间：负责账号规范化、密码验证、
@@ -32,6 +34,8 @@ class AuthPolicy:
     login_lock_minutes: int = 15
 
 
+# 文档对应：图2-1 用户注册与登录；图2-3 身份认证控制；表1-1 用户与会话。
+# 设计文档对应：图2-1、图4-2 AuthService 的职责与成员关系。
 class AuthService:
     """编排用户认证流程，不依赖 FastAPI。"""
 
@@ -59,6 +63,8 @@ class AuthService:
             created_at=user.created_at,
         )
 
+    # 文档对应：图2-2-1a 用户注册；2.2.1节 注册成功后单独登录。
+    # 设计文档对应：图4-1-1 规范化账号、保存 scrypt 密码摘要并返回用户；注册不创建会话。
     def register(self, payload: RegisterRequest) -> UserRead:
         """创建默认普通、未完成校园验证的账号。"""
 
@@ -75,6 +81,8 @@ class AuthService:
             raise AppError(code="ACCOUNT_EXISTS", message="该账号已注册", status_code=409) from exc
         return self.to_user_read(user)
 
+    # 文档对应：图2-2-1 用户登录；2.2.1节 凭据核验、失败锁定及建立会话。
+    # 设计文档对应：图4-1-2 校验凭据及锁定状态，再创建可撤销会话。
     def login(
         self,
         payload: LoginRequest,
@@ -127,6 +135,8 @@ class AuthService:
             user=self.to_user_read(user),
         )
 
+    # 文档对应：图2-1 校园用户的登录身份；3.1节 会话及账号访问状态检查。
+    # 设计文档对应：图3-3-1、图3-3-2 受保护接口检查令牌有效性和账号访问状态。
     def authenticate(self, token: str, *, now: datetime | None = None) -> UserRead:
         """根据未过期且未吊销的令牌加载当前用户。"""
 
@@ -140,6 +150,8 @@ class AuthService:
             raise AppError(code="ACCOUNT_RESTRICTED", message="账号当前不可用", status_code=403)
         return self.to_user_read(user)
 
+    # 文档对应：图2-2-1b 用户退出；2.2.1节 吊销当前会话。
+    # 设计文档对应：图3-2-7 吊销当前会话。
     def logout(self, token: str, *, now: datetime | None = None) -> None:
         """吊销当前会话；无效令牌沿用未认证错误。"""
 

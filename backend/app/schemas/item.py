@@ -1,3 +1,5 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 """失物与拾物记录的 API 请求、响应和枚举契约。
 
 Schema 与数据库模型保持分离，防止未来数据库内部字段被意外暴露给前端。
@@ -41,6 +43,7 @@ class ItemStatus(StrEnum):
     CLOSED = "closed"
 
 
+# 设计文档对应：图3-2-4、图3-2-7 公开目录选项只含编号、名称、校区、区域和模拟标记。
 class CampusLocationOption(BaseModel):
     """发布和编辑共用的校园地点选项，不返回坐标与距离矩阵。"""
 
@@ -87,6 +90,7 @@ def _validate_found_fields(
         raise ValueError("失物记录不能填写拾物保管信息")
 
 
+# 设计文档对应：图4-1-5 公开物品详情不包含完整联系方式。
 class ItemRead(BaseModel):
     """前端可以安全展示的一条失物或拾物记录。"""
 
@@ -115,6 +119,8 @@ class ItemListResponse(BaseModel):
     total: int = Field(ge=0)
 
 
+# 文档对应：图2-2-2、图2-2-3 的发布输入；2.2节用例业务规则 标题、时间、校区、保管字段及图片数量。
+# 设计文档对应：图4-1-3、图4-1-4 共享发布输入及校区、时间、拾物保管字段的交叉校验。
 class ItemCreate(BaseModel):
     """发布失物或拾物时由前端提交的字段。"""
 
@@ -175,6 +181,8 @@ class ItemCreate(BaseModel):
         return self
 
 
+# 文档对应：图2-2-5 编辑输入；2.2.5节；2.2节用例业务规则 字段边界。
+# 设计文档对应：图4-1-6 物品编辑允许接收的字段。
 class ItemUpdate(BaseModel):
     """发布者可编辑的字段；未提供字段与显式 ``null`` 保持区分。"""
 
@@ -210,6 +218,8 @@ class ItemUpdate(BaseModel):
         return ItemCreate.validate_contact(value)
 
 
+# 文档对应：图2-2-5a 结束记录输入；2.2.5节 类型与终态约束。
+# 设计文档对应：图4-1-6 找回、归还或关闭的状态操作输入。
 class ItemStatusUpdate(BaseModel):
     """发布者关闭或完成一条记录时提交的状态变化。"""
 
@@ -219,6 +229,7 @@ class ItemStatusUpdate(BaseModel):
     reason: str | None = Field(default=None, max_length=255)
 
 
+# 设计文档对应：图3-2-7 本人管理页面使用的响应，包含允许本人查看的管理字段。
 class ItemOwnerRead(ItemRead):
     """仅向发布者或管理员返回的记录管理视图。"""
 

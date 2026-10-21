@@ -1,3 +1,6 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
+# 设计文档对应：图4-1-7 图文及独立文本评分、响应校验和降级的现有测试。
 """多模态供应商、评分融合及发布降级测试；所有请求均由 MockTransport 拦截。"""
 
 import json
@@ -49,6 +52,7 @@ def attach_image(features, tmp_path, item_id, *, storage_key="proof.png", data=b
     ))
 
 
+# 文档对应：图2-2-10a；2.2.10节 图文请求；3.1节 字段白名单。
 def test_request_sends_labeled_images_and_only_public_fields(
     tmp_path, item_repository, feature_repository,
 ):
@@ -91,6 +95,7 @@ def test_request_sends_labeled_images_and_only_public_fields(
     assert len(requests) == 1
 
 
+# 文档对应：图2-2-10a 失败降级；3.1节；2.2.10节。
 @pytest.mark.parametrize("failure", [
     "timeout", "unauthorized", "rate_limit", "server", "unsupported_images",
     "malformed_json", "missing_content", "score_out_of_range", "unknown_id",
@@ -175,6 +180,7 @@ def test_ai_can_raise_candidate_below_rule_threshold(
     assert rows[0].dimensions[-1]["label"] == "AI 图文"
 
 
+# 文档对应：图2-2-2、图2-2-3、图2-2-10a；3.1节；2.2.2、2.2.3、2.2.10节。
 @pytest.mark.parametrize("provider_fails", [False, True])
 def test_publication_uses_ai_and_still_succeeds_when_provider_fails(
     client, tmp_path, item_repository, feature_repository, provider_fails,
@@ -218,6 +224,7 @@ def test_publication_uses_ai_and_still_succeeds_when_provider_fails(
         assert "未启用" not in text["explanation"]
 
 
+# 文档对应：图2-2-10a 的启用条件；3.1节 关闭外部比较时使用规则。
 def test_disabled_ai_makes_no_requests(tmp_path, item_repository, feature_repository):
     def handler(request):
         pytest.fail("禁用时不得调用供应商")
@@ -229,6 +236,7 @@ def test_disabled_ai_makes_no_requests(tmp_path, item_repository, feature_reposi
     assert matcher.assess(item_repository.get_by_id(1), [item_repository.get_by_id(2)]) == {}
 
 
+# 文档对应：图2-2-10、图2-2-10a；2.2.10节 候选数量及融合权重。
 def test_candidate_limit_and_weighted_score(tmp_path, item_repository, feature_repository):
     source = replace(item_repository.get_by_id(1), owner_id=123)
     # 添加另一条同校区拾物，让模型只处理规则排名第一的一条。
@@ -295,6 +303,7 @@ def test_remote_plain_http_is_rejected():
         Settings(_env_file=None, matching_ai_base_url="http://vision.example")
 
 
+# 文档对应：图2-2-10a 文本语义分独立于图文分；2.2.10节禁止共同字符比例替代。
 def test_semantic_text_score_replaces_characters_and_is_separate_from_image_score(
     tmp_path, item_repository, feature_repository,
 ):
@@ -338,6 +347,7 @@ def test_semantic_text_score_replaces_characters_and_is_separate_from_image_scor
     {"text_score": 101}, {"text_score": -1}, {"text_score": "90"},
     {"text_explanation": ""}, {"text_score": None},
 ])
+# 文档对应：图2-2-10a 无效语义评分导致整批模型响应弃用。
 def test_invalid_semantic_score_is_not_used(tmp_path, item_repository, feature_repository, change):
     matcher = MultimodalMatcher(
         ai_settings(tmp_path), feature_repository,
@@ -348,6 +358,7 @@ def test_invalid_semantic_score_is_not_used(tmp_path, item_repository, feature_r
     assert matcher.assess(item_repository.get_by_id(1), [item_repository.get_by_id(2)]) == {}
 
 
+# 文档对应：图2-2-10a 模型响应必须同时包含文本语义分和图文分。
 def test_missing_semantic_score_is_not_accepted(tmp_path, item_repository, feature_repository):
     old_response = json.dumps({"matches": [
         {"candidate_id": 2, "score": 90, "explanation": "旧格式只有图文分"},
@@ -362,6 +373,7 @@ def test_missing_semantic_score_is_not_accepted(tmp_path, item_repository, featu
     assert "评分格式" in matcher.failure_reason
 
 
+# 文档对应：图2-2-10 关闭模型时文本显示未评估，不按共同字符计算分数。
 def test_no_model_does_not_assign_text_score_even_for_identical_characters(item_repository):
     source = item_repository.get_by_id(1)
     score, dimensions = MatchingService._score(source, source)

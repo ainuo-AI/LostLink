@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /**
  * 匹配详情与反馈页面
  *
@@ -27,6 +29,8 @@ function formatTime(value: string) { return new Intl.DateTimeFormat('zh-CN', { d
 function statusText(status: MatchStatus) { return status === 'pending' ? '待处理' : status === 'confirmed' ? '已确认' : '已拒绝' }
 
 /** 读取详情时同时标记为已读，但不改变候选的处理状态。 */
+// 文档对应：图2-2-6、图2-2-7 读取候选详情并标记已读；图2-3 匹配通知界面。
+// 设计文档对应：图3-2-6、图4-2 读取双方物品和已保存的评分维度，并标记通知已读。
 async function load() {
   loading.value = true
   errorMessage.value = ''
@@ -43,6 +47,8 @@ async function load() {
  * 处理候选前检查拒绝原因和说明长度，再通过确认框避免误操作。
  * busy 防止连续点击产生重复处理，服务层还会做第二次状态保护。
  */
+// 文档对应：图2-2-7 提交确认或拒绝；2.2.6、2.2.7节 拒绝原因及防重复操作。
+// 设计文档对应：图4-1-8、图3-2-6 提交 confirmed/rejected，只处理候选线索。
 async function decide(decision: 'confirmed' | 'rejected') {
   if (busy.value || !match.value || match.value.status !== 'pending') return
   actionError.value = ''
@@ -62,6 +68,7 @@ onMounted(() => { void load() })
 watch(id, () => { void load() })
 </script>
 
+<!-- 设计文档对应：图3-1-8 候选对比、评分依据、未评估原因与确认/拒绝控件。 -->
 <template>
   <div class="app-shell">
     <SiteHeader active-nav="匹配通知" @navigate="navigate" />

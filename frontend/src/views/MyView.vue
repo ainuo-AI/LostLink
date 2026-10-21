@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
+// 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 /** 当前用户资料与物品管理页，所有数据均来自受保护的后端接口。 */
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -44,6 +46,8 @@ function handleRequestError(error: unknown, fallback: string): string {
 }
 
 /** 根据当前类型、状态和页码加载当前用户自己的记录。 */
+// 文档对应：图2-2-5 编辑前读取本人记录；图2-3 物品管理界面。
+// 设计文档对应：图3-2-7、图4-2 分页加载当前用户拥有的物品记录。
 async function loadRecords() {
   loading.value = true
   pageError.value = ''
@@ -102,6 +106,8 @@ function startEdit(item: ApiOwnerItem) {
   actionError.value = ''
 }
 
+// 文档对应：图2-2-5 提交字段修改；2.2.5节。
+// 设计文档对应：图3-2-7、图4-1-6 校验目录地点后保存 active 记录的编辑字段。
 async function saveEdit() {
   if (!editing.value || actionId.value !== null) return
   if (editForm.title.trim().length < 2 || editForm.description.trim().length < 10) {
@@ -135,6 +141,8 @@ async function saveEdit() {
 }
 
 /** 终态变更先由用户确认，再交由后端执行类型和状态转换校验。 */
+// 文档对应：图2-2-5a 提交找回、归还或关闭结论；2.2.5节。
+// 设计文档对应：图4-1-6、图3-2-7 提交找回、归还或关闭终态；returned 是记录状态。
 async function finishItem(item: ApiOwnerItem, nextStatus: ItemStatus) {
   if (actionId.value !== null) return
   const label = statusLabels[nextStatus]
@@ -158,6 +166,8 @@ async function finishItem(item: ApiOwnerItem, nextStatus: ItemStatus) {
   }
 }
 
+// 文档对应：图2-2-1b 用户退出；2.2.1节。
+// 设计文档对应：图3-2-7 吊销当前会话，清理前端状态并返回首页。
 async function logout() {
   actionError.value = ''
   try {
@@ -169,6 +179,7 @@ async function logout() {
 }
 </script>
 
+<!-- 设计文档对应：图3-1-9 个人资料、本人记录、编辑表单与终态操作的外观。 -->
 <template>
   <div class="app-shell">
     <SiteHeader active-nav="我的" />

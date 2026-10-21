@@ -1,3 +1,4 @@
+# 文档对照：03_LostLink软件需求规格说明书.docx；图表编号以当前文档为准。
 """地点目录、校区范围与禁止自由文本的 API 契约。"""
 
 import pytest
@@ -6,6 +7,7 @@ from tests.api.test_item_management import authenticated_headers, lost_payload
 from tests.api.test_remaining_features import found_payload
 
 
+# 文档对应：图2-2-2、图2-2-3 的地点目录接口验证；2.2.10节可选地点与模拟标识。
 def test_public_catalog_only_contains_selectable_locations(client):
     response = client.get("/api/v1/locations")
     assert response.status_code == 200
@@ -25,6 +27,7 @@ def test_public_catalog_only_contains_selectable_locations(client):
     {"location": "操场南门"},
     {"location": "演示地点"},
 ])
+# 文档对应：图2-2-2、图2-2-3 拒绝非标准地点与错误校区、区域组合。
 def test_create_rejects_text_aliases_and_wrong_location_scope(client, changes):
     headers, _ = authenticated_headers(client)
     response = client.post("/api/v1/items", headers=headers, json=lost_payload(**changes))
@@ -48,6 +51,7 @@ def test_all_catalog_options_can_be_published(client):
     ("图书馆值班室", 422),
     ("操场南门", 422),
 ])
+# 文档对应：图2-2-3 保管地点必须来自同校区标准选项。
 def test_storage_location_must_be_a_selection_in_the_same_campus(client, storage, expected):
     headers, _ = authenticated_headers(client)
     response = client.post(
@@ -58,6 +62,7 @@ def test_storage_location_must_be_a_selection_in_the_same_campus(client, storage
         assert response.json()["code"] == "ITEM_LOCATION_INVALID"
 
 
+# 文档对应：图2-2-5 编辑后的完整地点和保管范围校验。
 def test_partial_updates_validate_final_location_and_storage_scope(client):
     headers, _ = authenticated_headers(client)
     created = client.post("/api/v1/items", headers=headers, json=found_payload()).json()

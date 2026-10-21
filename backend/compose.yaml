@@ -1,6 +1,8 @@
+# 设计文档对照：04_LostLink软件设计规格说明书.docx；以下“设计文档对应”使用该文档图表编号。
 # 本地 MySQL 服务：macOS 与 Windows 使用相同配置，避免团队成员手工安装不同版本。
 name: lostlink
 
+# 设计文档对应：图4-4、表4-1 使用 Docker 运行 MySQL 8.4，并将数据库数据保存在卷中。
 services:
   mysql:
     image: mysql:8.4
